@@ -73,6 +73,9 @@ public class jfsOtterly extends JPanel {
 	private Color offColor = Color.black;
 	private Color errColor = Color.red;
 
+	/*
+	 * Which Comports are available
+	 */
 	Enumeration 		ports;
 	CommPortIdentifier	portId;
 	JComboBox jlistports;
@@ -95,25 +98,26 @@ public class jfsOtterly extends JPanel {
 	}
 		return p;
 	}
-	
+	/*
+	 * To get the threads right
+	 */
 	CubbyHole ch = new CubbyHole();
-
+	/*
+	 * Our Comport
+	 */
 	CommPortIdentifier serialPortId;
 	Enumeration enumComm;
 	SerialPort serialPort;
 	OutputStream outputStream;
 	InputStream inputStream;
 	Boolean serialPortGeoeffnet = false;
-	
-	DecimalFormat df = new DecimalFormat("####0"); 
-	DecimalFormat df1 = new DecimalFormat("####0.#"); 
-	
 	int baudrate = 115200;
 	int dataBits = SerialPort.DATABITS_8;
 	int stopBits = SerialPort.STOPBITS_1;
 	int parity = SerialPort.PARITY_NONE;
 	String portName = "";
 	rs232io io;
+	
 	JLabel status = new JLabel("                    "); 	// 20 zeichen
 	JButton open;
 	JButton close;
@@ -129,44 +133,66 @@ public class jfsOtterly extends JPanel {
 
 	public long thrsleep = 20;
 	private JTextField jbts;
+
+	DecimalFormat df = new DecimalFormat("####0"); 
+	DecimalFormat df1 = new DecimalFormat("####0.#"); 
 	
 	// otterly
-	// Aufnahme
+	/*
+	 * status of jobs
+	 * IDLE waiting for something to do
+	 * RECORD signal expected
+	 * BASELINE signal for baseline expected
+	 * MULTI stands for multiple RECORDS
+	 */
 	public static final int  IDLE = 0;
 	public static final int  RECORD = 1;
 	public static final int  BASELINE = 2;
 	public static final int  MULTI = 3;
-	// Ausgabe
+	/*
+	 * Output
+	 * RAW just the signal
+	 * CALCULATE
+	 * TRANSMISSION
+	 * EXTENTION or absorbance
+	 */
 	public static final int RAW = 0;
 	public static final int CALCULATE = 3;
 	public static final int TRANSMISSION = 2;
 	public static final int EXTENTION = 4;
 	
+	/*
+	 * inilize status
+	 */
 	private int job = IDLE;
 	private int out = RAW;
-	
-	private boolean record = false;	// aufzeichnen
-
-	private boolean gotbase = false; // Baseline vorhanden
-	
+	/*
+	 * record started
+	 */
+	private boolean record = false;	
+	/*
+	 * Do we have a baseline ?
+	 */
+	private boolean gotbase = false; 
+	/*
+	 * Data from the spectroscope
+	 */
 	static int max_buffer = 7388;
 	byte[] datenbuffer = new byte[max_buffer];
 	float[] daten = new float[max_buffer/2];
 	float[] base = new float[max_buffer/2];
-
-	private Display display = new Display();
+	/*
+	 * Data to display
+	 */
+	private DisplayIt display = new DisplayIt();
 	
 	int dbpointer = 0;
 	boolean dbnew = false;
-	int sh_period = 14;
-	int icg_period = 14776;
-	private JTextField shts;
-	byte[] sendbuffer = new byte[] { (byte)0x45, (byte)0x52, 
-		(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0E,
-		(byte)0x00, (byte)0x00, (byte)0xDA, (byte)0xC0,
-		(byte)0x01, (byte)0x00};
+
+	
+
 	private JLabel bfout;
-	private JTextField icgts;
+
 	private JToggleButton jt0;
 	private JLabel lblLed;
 	private JButton jbclear;
@@ -176,6 +202,20 @@ public class jfsOtterly extends JPanel {
 	private float low_level=3910;
 	private JTextField lowts;
 	
+	/*
+	 * the sendbuffer will be send to the nucleoboard
+	 * update_send_buffer sets the correct Values for SH and ICG period
+	 */
+	byte[] sendbuffer = new byte[] { (byte)0x45, (byte)0x52, 
+			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0E,
+			(byte)0x00, (byte)0x00, (byte)0xDA, (byte)0xC0,
+			(byte)0x01, (byte)0x00};
+
+	int sh_period = 14;
+	int icg_period = 14776;
+	
+	private JTextField shts;
+	private JTextField icgts;
 	
 	private void update_send_buffer(){		
 		sh_period = Integer.parseInt(shts.getText());
@@ -190,7 +230,9 @@ public class jfsOtterly extends JPanel {
 		}   
         update_parameter();
 	}
-	
+	/*
+	 * Panel for open and close of the RS 232 port
+	 */
 	private JPanel init_rs(){
 	    JPanel rs = new JPanel();
 	    rs.setLayout(new MigLayout());
@@ -236,7 +278,14 @@ public class jfsOtterly extends JPanel {
 		rs.add(status);
 		return rs;			
 	}
-
+	/*
+	 * panel for SH and ICG Period
+	 * 
+	 * high_level is the maximum output
+	 * low_level is the minimum output
+	 * of the CCD this is only experimental
+	 * 
+	 */
 	private JPanel functions(){
 	    JPanel fs = new JPanel();
 	    fs.setLayout(new MigLayout());
@@ -351,7 +400,10 @@ public class jfsOtterly extends JPanel {
 				
 			}
 		});
-	    //////////////////////
+
+	    /*
+	     * Start the Record
+	     */
 	    jt0 = new JToggleButton(">>",record);
 	    jt0.setForeground(offColor);
 	    jt0.addActionListener(new ActionListener() {			
@@ -368,7 +420,9 @@ public class jfsOtterly extends JPanel {
 	    lblLed = new JLabel("•");
 	    lblLed.setForeground(Color.GREEN);
 	    pfs.add(lblLed,"wrap");
-	    // Record Baseline
+	    /*
+	     * Record Baseline
+	     */
 	    jt1 = new JToggleButton("baseline",record);
 	    jt1.setForeground(offColor);
 	    jt1.addActionListener(new ActionListener() {			
@@ -476,7 +530,9 @@ public class jfsOtterly extends JPanel {
 		        }
 			}
 		});	    
-	    // Kontolle
+	    /*
+	     * Multiple records
+	     */
 	    JPanel xfs = new JPanel();
 	    xfs.setLayout(new MigLayout());
 	    xfs.setBorder(BorderFactory.createTitledBorder("Aufzeichnung alle [ms]"));
@@ -664,8 +720,11 @@ public class jfsOtterly extends JPanel {
 		@Override
 		public void run() {
 
-	        if (oeffneSerialPort(portName) != true)
+	    if (oeffneSerialPort(portName) != true)
 	        	return;
+	    /*
+	     * 
+	     */
 		while (true){
 			if ((record) && (dbnew==false)) doit(job);
 			try {
@@ -760,6 +819,10 @@ public class jfsOtterly extends JPanel {
 		void serialPortDatenVerfuegbar() {
 			try {
 				int num;
+				/*
+				 * Data are available and they will be stored in the datenbuffer until max_buffer is reached
+				 * 
+				 */
 				while(inputStream.available() > 0) {
 					num = inputStream.read(datenbuffer,dbpointer, datenbuffer.length-dbpointer);				
 					dbpointer = dbpointer +num;
@@ -767,7 +830,7 @@ public class jfsOtterly extends JPanel {
 						 status.setText(" read "+dbpointer);
 						 lblLed.setForeground(Color.GREEN);
 						 dbnew = false;
-					    update();
+					     update();
 					}
 					
 				}
@@ -804,7 +867,7 @@ public class jfsOtterly extends JPanel {
 	
 	/*
 	 * synchronisierten Zugriff auf einen kritischen Abschnitt
-	 * Monitorkonept: ein Objekt kontrolliert den ZUgriff auf sich selbst, indem es den zugreifenden Programmen
+	 * Monitorkonzept: ein Objekt kontrolliert den ZUgriff auf sich selbst, indem es den zugreifenden Programmen
 	 * für die Dauer eines Zugriffs einen Monitor erteilt
 	 */
 	private class CubbyHole {
@@ -868,8 +931,10 @@ public class jfsOtterly extends JPanel {
 			  return (System.currentTimeMillis() - this.startTime) ;
 		  }
 		}
-
-	public class Display {
+	/*
+	 *  contains the data to be displayed
+	 */
+	public class DisplayIt {
 		float[] x = new float[max_buffer/2];
 		float[] y = new float[max_buffer/2];	
 		
