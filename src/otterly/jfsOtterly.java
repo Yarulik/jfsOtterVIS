@@ -19,6 +19,7 @@ import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
 import gnu.io.UnsupportedCommOperationException;
 
+import java.awt.Checkbox;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -72,6 +73,7 @@ public class jfsOtterly extends JPanel {
 	private	Color onColor = Color.green;
 	private Color offColor = Color.black;
 	private Color errColor = Color.red;
+	private Color checkColor = Color.blue;
 
 	/*
 	 * Which Comports are available
@@ -144,11 +146,13 @@ public class jfsOtterly extends JPanel {
 	 * RECORD signal expected
 	 * BASELINE signal for baseline expected
 	 * MULTI stands for multiple RECORDS
+	 * DARK is the dark signal of the instrument
 	 */
 	public static final int  IDLE = 0;
 	public static final int  RECORD = 1;
 	public static final int  BASELINE = 2;
 	public static final int  MULTI = 3;
+	public static final int	 DARKLINE = 4;
 	/*
 	 * Output
 	 * RAW just the signal
@@ -175,12 +179,18 @@ public class jfsOtterly extends JPanel {
 	 */
 	private boolean gotbase = false; 
 	/*
+	 * Do we have a darkline
+	 */
+	private boolean gotdarkline = false;
+	private boolean usedarkline = false;
+	/*
 	 * Data from the spectroscope
 	 */
 	static int max_buffer = 7388;
 	byte[] datenbuffer = new byte[max_buffer];
 	float[] daten = new float[max_buffer/2];
 	float[] base = new float[max_buffer/2];
+	float[] dark = new float[max_buffer/2];
 	/*
 	 * Data to display
 	 */
@@ -216,6 +226,9 @@ public class jfsOtterly extends JPanel {
 	
 	private JTextField shts;
 	private JTextField icgts;
+	private JToggleButton jt2;
+	private JLabel testit;
+	private Checkbox testx;
 	
 	private void update_send_buffer(){		
 		sh_period = Integer.parseInt(shts.getText());
@@ -436,7 +449,24 @@ public class jfsOtterly extends JPanel {
 				} 	
 			}
 		});
-	    pfs.add(jt1,"wrap");
+	    pfs.add(jt1);
+	    /*
+	     * Record Darkline
+	     */
+	    jt2 = new JToggleButton("darkline",record);
+	    jt2.setForeground(offColor);
+	    jt2.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (job == IDLE){
+					record=true;
+					job=DARKLINE;
+					gotdarkline=true;
+					jt2.setForeground(onColor);
+				} 	
+			}
+		});
+	    pfs.add(jt2,"wrap");	    
 	    jbclear = new JButton("clear screen");
 	    pfs.add(jbclear,"wrap");
 	    jbclear.addActionListener(new ActionListener() {
@@ -453,6 +483,29 @@ public class jfsOtterly extends JPanel {
 	    outfs.setLayout(new MigLayout());
 	    outfs.setBorder(BorderFactory.createTitledBorder("Ausgabe"));
 	    fs.add(outfs,"wrap");
+	    
+	    
+		testit = new JLabel("use darkline");
+		testx = new Checkbox();
+		testx.setState(usedarkline);
+		testx.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (testx.getState()){
+					if (gotdarkline==true){
+						usedarkline = true;
+						testit.setForeground(onColor);
+					} else{
+						testx.setState(false);
+					}
+				} else {
+					usedarkline = false;
+					testit.setForeground(offColor);
+				}				
+			}
+		});
+		fs.add(testit);
+		fs.add(testx,"wrap");
+	    
 	    ButtonGroup group = new ButtonGroup();
 	    final JRadioButton jrbraw = new JRadioButton("Raw");
 	    jrbraw.setSelected(true);
@@ -619,13 +672,33 @@ public class jfsOtterly extends JPanel {
 			switch (out){
 			case CALCULATE:
 				for (int j = 0; j < daten.length; j++) {
-				y= low_level - daten[j];
-				display.y[j]= (y / (low_level-high_level));
-				display.x[j]=j;
+				if (usedarkline==true){
+					y = dark[j] - daten[j];
+					if (y < 0) y= 0;
+					display.y[j]= (y / (dark[j]-high_level));
+					display.x[j]=j;
+				} else {
+					y= low_level - daten[j];
+					display.y[j]= (y / (low_level-high_level));
+					display.x[j]=j;
+				}				
+				log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);
 				}
 			break;
-			case TRANSMISSION:
+			case TRANSMISSION:				
 				for (int j = 0; j < daten.length; j++) {
+				if (usedarkline==true){
+					y = dark[j] - daten[j];
+					if (y < 0) y= 0;
+					y1 = dark[j] - base[j];
+					if (y1 == 0 ){
+						display.y[j]=0;
+					} else {
+						display.y[j]= y/y1;
+					}
+					display.x[j]=j;
+					log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);				
+				} else{
 				y= low_level - daten[j];
 				display.y[j]= (y / (low_level-high_level));
 				
@@ -638,10 +711,9 @@ public class jfsOtterly extends JPanel {
 				display.x[j]=j;
 				log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);
 				}
-
+				}
 			break;
-			case EXTENTION:
-				
+			case EXTENTION:				
 			break;	
 			default:
 				for (int j = 0; j < daten.length; j++) {
@@ -649,7 +721,8 @@ public class jfsOtterly extends JPanel {
 					display.x[j]=j;
 					}				
 				break;			
-		}   
+		}  
+		
 			display.show();
 	}
 	
@@ -666,25 +739,40 @@ public class jfsOtterly extends JPanel {
 			if (job == BASELINE){ 
 				base[i]=a; 
 			}
-			else daten[i]=a; 			
+			else if (job == DARKLINE){
+				dark[i]=a;
+			}
+			else {
+				daten[i]=a; 
+				
+			}
 		   }
 		   log.debug("job "+job+" out "+out);
 		   switch (job) {
 		   		case RECORD:
 		   			job = IDLE;
 		   			record=false;	
-		   			jt0.setForeground(offColor);	
+		   			jt0.setForeground(offColor);
+		   			showit();
 		   		break;
 		   		case BASELINE:
 		   			job = IDLE;
 		   			record=false;
-		   			jt1.setForeground(offColor);
+		   			jt1.setForeground(checkColor);
+		   			display.showbase();
 		   		break;	
+		   		case DARKLINE:
+		   			job = IDLE;
+		   			record=false;
+		   			jt2.setForeground(checkColor);
+		   			display.showdark();
+		   		break;	
+		   		
 		   		default:
 		   			break;
 		   }
 		  
-		   showit();
+		 
 	}	
 	
 	
@@ -942,6 +1030,16 @@ public class jfsOtterly extends JPanel {
 			for (int i = 0; i < x.length; i++) {
 				plot.addPoint(0, x[i], y[i],true);					
 			}
-		}	
+		}
+		public void showdark(){
+			for (int i = 0; i < dark.length; i++) {
+				plot.addPoint(1, i, dark[i],true);					
+			}			
+		}
+		public void showbase(){
+			for (int i = 0; i < dark.length; i++) {
+				plot.addPoint(2, i, base[i],true);					
+			}			
+		}
 	}
 }
