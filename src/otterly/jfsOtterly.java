@@ -640,8 +640,8 @@ public class jfsOtterly extends JPanel {
 	}
 	
 	protected void update_parameter() {
-		bfout.setText("Up "+df1.format(high_level)+" Low "+df1.format(low_level));	
-		showit();
+		bfout.setText("update parameter Up "+df1.format(high_level)+" Low "+df1.format(low_level));	
+		//showit();
 	}
 
 	
@@ -683,7 +683,9 @@ public class jfsOtterly extends JPanel {
 					display.x[j]=j;
 				}				
 				log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);
+				
 				}
+				display.show_calculate();
 			break;
 			case TRANSMISSION:				
 				for (int j = 0; j < daten.length; j++) {
@@ -712,6 +714,7 @@ public class jfsOtterly extends JPanel {
 				log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);
 				}
 				}
+				display.show_transmission();
 			break;
 			case EXTENTION:				
 			break;	
@@ -719,11 +722,12 @@ public class jfsOtterly extends JPanel {
 				for (int j = 0; j < daten.length; j++) {
 					display.y[j]= daten[j];
 					display.x[j]=j;
-					}				
+					}	
+				display.show_raw();
 				break;			
 		}  
 		
-			display.show();
+			//display.show();
 	}
 	
 	
@@ -1026,17 +1030,44 @@ public class jfsOtterly extends JPanel {
 		float[] x = new float[max_buffer/2];
 		float[] y = new float[max_buffer/2];	
 		
-		public void show(){
-			for (int i = 0; i < x.length; i++) {
-				plot.addPoint(0, x[i], y[i],true);					
-			}
+	
+		public void show_raw() {
+			plot.clear(true);
+		    plot.setYRange(1000, 4000);
+		    plot.setXRange(0, 3700);	 			
+			for (int i = 0; i < daten.length; i++) {
+				plot.addPoint(0, display.x[i], display.y[i],true);					
+			}				
+		
 		}
+		public void show_transmission() {
+			// TODO Auto-generated method stub
+			
+		}
+		public void show_calculate() {
+			plot.clear(false);
+			plot.repaint();
+		    plot.setYRange(0,1);
+		    plot.setXRange(0, 3700);	 			
+			for (int i = 0; i < daten.length; i++) {
+				plot.addPoint(0, display.x[i], display.y[i],true);					
+			}			
+		}
+	
 		public void showdark(){
+			plot.clear(false);
+			plot.repaint();
+		    plot.setYRange(1000, 4000);
+		    plot.setXRange(0, 3700);	 			
 			for (int i = 0; i < dark.length; i++) {
 				plot.addPoint(1, i, dark[i],true);					
 			}			
 		}
 		public void showbase(){
+			plot.clear(false);
+			plot.repaint();
+		    plot.setYRange(1000, 4000);
+		    plot.setXRange(0, 3700);	 
 			for (int i = 0; i < dark.length; i++) {
 				plot.addPoint(2, i, base[i],true);					
 			}			
