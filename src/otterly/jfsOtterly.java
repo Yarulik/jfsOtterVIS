@@ -228,7 +228,8 @@ public class jfsOtterly extends JPanel {
 	private JTextField icgts;
 	private JToggleButton jt2;
 	private JLabel testit;
-	private Checkbox testx;
+	private Checkbox testx; //now unused
+	private float trans_level = 100; // sollte gesetzt werden
 	
 	private void update_send_buffer(){		
 		sh_period = Integer.parseInt(shts.getText());
@@ -312,79 +313,62 @@ public class jfsOtterly extends JPanel {
 	    pfs.add(new JLabel("SH period"));
 	    shts = new JTextField(Integer.toString(sh_period),8);
 	    pfs.add(shts,"wrap");
-	    shts.addKeyListener(new KeyListener() {
-			
+	    shts.addKeyListener(new KeyListener() {		
 			@Override
 			public void keyTyped(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+				// TODO Auto-generated method stub				
+			}			
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				// TODO Auto-generated method stub
 				
-			}
-			
+			}		
 			@Override
 			public void keyPressed(KeyEvent arg0) {
 				if (arg0.getKeyCode()==KeyEvent.VK_ENTER){
 		            //sh_period = Integer.parseInt(shts.getText());
 		            update_send_buffer();
-		        }		
-				
+		        }					
 			}
 		});
 	    pfs.add(new JLabel("ICG period"));
 	    icgts = new JTextField(Integer.toString(icg_period),8);
 	    pfs.add(icgts,"wrap");
-	    icgts.addKeyListener(new KeyListener() {
-			
+	    icgts.addKeyListener(new KeyListener() {		
 			@Override
 			public void keyTyped(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+				// TODO Auto-generated method stub			
+			}		
 			@Override
 			public void keyReleased(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+				// TODO Auto-generated method stub			
+			}			
 			@Override
 			public void keyPressed(KeyEvent arg0) {
 				if (arg0.getKeyCode()==KeyEvent.VK_ENTER){
 		            //icg_period = Integer.parseInt(icgts.getText());
 		            update_send_buffer();
-		        }		
-				
+		        }						
 			}
 		});
 	    pfs.add(new JLabel("High level"));
 	    hights = new JTextField(Float.toString(high_level),8);
 	    pfs.add(hights,"wrap");
-	    hights.addKeyListener(new KeyListener() {
-			
+	    hights.addKeyListener(new KeyListener() {			
 			@Override
 			public void keyTyped(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+				// TODO Auto-generated method stub			
+			}			
 			@Override
 			public void keyReleased(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+				// TODO Auto-generated method stub				
+			}			
 			@Override
 			public void keyPressed(KeyEvent arg0) {
 				if (arg0.getKeyCode()==KeyEvent.VK_ENTER){
 		            high_level = Float.parseFloat(hights.getText());
 		            update_parameter();
-		        }		
-				
+		        }						
 			}
 		});
 	    /*
@@ -484,8 +468,6 @@ public class jfsOtterly extends JPanel {
 	    outfs.setLayout(new MigLayout());
 	    outfs.setBorder(BorderFactory.createTitledBorder("Ausgabe"));
 	    fs.add(outfs,"wrap");
-	    
-	    
 		testit = new JLabel("use darkline");
 		testx = new Checkbox();
 		testx.setState(usedarkline);
@@ -673,55 +655,30 @@ public class jfsOtterly extends JPanel {
 			switch (out){
 			case CALCULATE:
 				for (int j = 0; j < daten.length; j++) {
-				//if (usedarkline==true){
 					y = dark[j] - daten[j];
 					if (y < 0) y= 0;
 					display.y[j]= (y / (dark[j]-high_level));
-					display.x[j]=j;
-				//} else {
-				//	y= low_level - daten[j];
-				//	display.y[j]= (y / (low_level-high_level));
-				//	display.x[j]=j;
-				//}				
-				//log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);				
+					display.x[j]=j;		
 				}
 				display.show_calculate();
 			break;
 			case TRANSMISSION:				
 				for (int j = 0; j < daten.length; j++) {
-				//if (usedarkline==true){
 					y = dark[j] - daten[j];
-					//if (y < 0) y= 0;
 					y1 = dark[j] - base[j];
-					if ((y1<100) | (y<100)){
+					if ((y1<trans_level ) | (y<trans_level)){
 						display.y[j]=0;
 					} else {
 						display.y[j]= y/y1;
 					}
-
 					display.x[j]=j;
 					log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);				
-				//} else{
-				//y= low_level - daten[j];
-				//display.y[j]= (y / (low_level-high_level));
-				
-				//y1= low_level - base[j];
-				//if (y1<=0){
-				//	display.y[j]=1;
-				//} else {
-				//display.y[j]= display.y[j]/(y1 / (low_level-high_level));
-				//}
-				//display.x[j]=j;
-				//log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);
-				//}
 				}
 				display.show_transmission();
 			break;
 			case EXTENTION:	
 				for (int j = 0; j < daten.length; j++) {
-
 						y = dark[j] - daten[j];
-						//if (y < 0) y= 0;
 						y1 = dark[j] - base[j];
 						if ((y1<100) | (y<100)){
 							display.y[j]=0;
@@ -743,7 +700,6 @@ public class jfsOtterly extends JPanel {
 				break;			
 		}  
 		
-			//display.show();
 	}
 	
 	
@@ -786,7 +742,9 @@ public class jfsOtterly extends JPanel {
 		   			jt2.setForeground(checkColor);
 		   			display.showdark();
 		   		break;	
-		   		
+		   		case MULTI:
+		   			showit();
+		   		break;	
 		   		default:
 		   			break;
 		   }
