@@ -205,7 +205,7 @@ public class jfsOtterly extends JPanel {
 
 	private JToggleButton jt0;
 	private JLabel lblLed;
-	private JButton jbclear;
+	public JButton jbclear;
 	private JToggleButton jt1;
 	private JTextField hights;
 	private float high_level=1465;
@@ -387,6 +387,7 @@ public class jfsOtterly extends JPanel {
 				
 			}
 		});
+	    /*
 	    pfs.add(new JLabel("Low level"));
 	    lowts = new JTextField(Float.toString(low_level),8);
 	    pfs.add(lowts,"wrap");
@@ -413,7 +414,7 @@ public class jfsOtterly extends JPanel {
 				
 			}
 		});
-
+	*/
 	    /*
 	     * Start the Record
 	     */
@@ -562,7 +563,7 @@ public class jfsOtterly extends JPanel {
 		        }
 			}
 		});	   
-	    JRadioButton jrbext = new JRadioButton("Extention");
+	    JRadioButton jrbext = new JRadioButton("Absorbance");
 	    group.add(jrbext);
 	    outfs.add(jrbext,"wrap");
 	    jrbext.addItemListener(new ItemListener() {			
@@ -672,51 +673,66 @@ public class jfsOtterly extends JPanel {
 			switch (out){
 			case CALCULATE:
 				for (int j = 0; j < daten.length; j++) {
-				if (usedarkline==true){
+				//if (usedarkline==true){
 					y = dark[j] - daten[j];
 					if (y < 0) y= 0;
 					display.y[j]= (y / (dark[j]-high_level));
 					display.x[j]=j;
-				} else {
-					y= low_level - daten[j];
-					display.y[j]= (y / (low_level-high_level));
-					display.x[j]=j;
-				}				
-				log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);
-				
+				//} else {
+				//	y= low_level - daten[j];
+				//	display.y[j]= (y / (low_level-high_level));
+				//	display.x[j]=j;
+				//}				
+				//log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);				
 				}
 				display.show_calculate();
 			break;
 			case TRANSMISSION:				
 				for (int j = 0; j < daten.length; j++) {
-				if (usedarkline==true){
+				//if (usedarkline==true){
 					y = dark[j] - daten[j];
-					if (y < 0) y= 0;
+					//if (y < 0) y= 0;
 					y1 = dark[j] - base[j];
-					if (y1 == 0 ){
+					if ((y1<100) | (y<100)){
 						display.y[j]=0;
 					} else {
 						display.y[j]= y/y1;
 					}
+
 					display.x[j]=j;
 					log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);				
-				} else{
-				y= low_level - daten[j];
-				display.y[j]= (y / (low_level-high_level));
+				//} else{
+				//y= low_level - daten[j];
+				//display.y[j]= (y / (low_level-high_level));
 				
-				y1= low_level - base[j];
-				if (y1<=0){
-					display.y[j]=1;
-				} else {
-				display.y[j]= display.y[j]/(y1 / (low_level-high_level));
-				}
-				display.x[j]=j;
-				log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);
-				}
+				//y1= low_level - base[j];
+				//if (y1<=0){
+				//	display.y[j]=1;
+				//} else {
+				//display.y[j]= display.y[j]/(y1 / (low_level-high_level));
+				//}
+				//display.x[j]=j;
+				//log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);
+				//}
 				}
 				display.show_transmission();
 			break;
-			case EXTENTION:				
+			case EXTENTION:	
+				for (int j = 0; j < daten.length; j++) {
+
+						y = dark[j] - daten[j];
+						//if (y < 0) y= 0;
+						y1 = dark[j] - base[j];
+						if ((y1<100) | (y<100)){
+							display.y[j]=0;
+						} else {
+							display.y[j]=(float) Math.log10(y1/y);
+						}
+
+						display.x[j]=j;
+						log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);	
+				}	
+				display.show_absorbance();
 			break;	
 			default:
 				for (int j = 0; j < daten.length; j++) {
@@ -747,8 +763,7 @@ public class jfsOtterly extends JPanel {
 				dark[i]=a;
 			}
 			else {
-				daten[i]=a; 
-				
+				daten[i]=a; 				
 			}
 		   }
 		   log.debug("job "+job+" out "+out);
@@ -1030,47 +1045,59 @@ public class jfsOtterly extends JPanel {
 		float[] x = new float[max_buffer/2];
 		float[] y = new float[max_buffer/2];	
 		
+		private void init_plot(){
+			jbclear.doClick();
+		    plot.setXRange(0, 3700);	 			
+		}
 	
 		public void show_raw() {
-			plot.clear(true);
-		    plot.setYRange(1000, 4000);
-		    plot.setXRange(0, 3700);	 			
+			init_plot();
+		    plot.setYRange(1000, 4000);	 			
 			for (int i = 0; i < daten.length; i++) {
 				plot.addPoint(0, display.x[i], display.y[i],true);					
-			}				
-		
+			}
+
 		}
 		public void show_transmission() {
-			// TODO Auto-generated method stub
+			init_plot();
+		    plot.setYRange(0,1); 			
+			for (int i = 0; i < daten.length; i++) {
+				plot.addPoint(0, display.x[i], display.y[i],true);					
+			}
+			
+		}
+		public void show_absorbance() {
+			init_plot();
+		    plot.setYRange(0,1); 			
+			for (int i = 0; i < daten.length; i++) {
+				plot.addPoint(0, display.x[i], display.y[i],true);					
+			}
 			
 		}
 		public void show_calculate() {
-			plot.clear(false);
-			plot.repaint();
-		    plot.setYRange(0,1);
-		    plot.setXRange(0, 3700);	 			
+			init_plot();
+		    plot.setYRange(0,1); 			
 			for (int i = 0; i < daten.length; i++) {
 				plot.addPoint(0, display.x[i], display.y[i],true);					
-			}			
+			}
+
 		}
 	
 		public void showdark(){
-			plot.clear(false);
-			plot.repaint();
-		    plot.setYRange(1000, 4000);
-		    plot.setXRange(0, 3700);	 			
+			init_plot();
+		    plot.setYRange(1000, 4000);	 			
 			for (int i = 0; i < dark.length; i++) {
 				plot.addPoint(1, i, dark[i],true);					
-			}			
+			}
+
 		}
 		public void showbase(){
-			plot.clear(false);
-			plot.repaint();
+		    init_plot();
 		    plot.setYRange(1000, 4000);
-		    plot.setXRange(0, 3700);	 
 			for (int i = 0; i < dark.length; i++) {
 				plot.addPoint(2, i, base[i],true);					
-			}			
+			}
+
 		}
 	}
 }
