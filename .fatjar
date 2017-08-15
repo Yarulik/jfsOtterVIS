@@ -1,5 +1,5 @@
 #Fat Jar Configuration File
-#Fri Aug 04 11:09:44 CEST 2017
+#Tue Aug 15 15:40:49 CEST 2017
 onejar.license.required=false
 manifest.classpath=
 manifest.removesigners=true
@@ -11,4 +11,4 @@ manifest.file=<createnew>
 jarname.isextern=false
 onejar.expand=
 excludes=
-includes=<inc|jfsOtterVIS/lib\\serial>
+includes=
