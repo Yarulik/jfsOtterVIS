@@ -20,6 +20,7 @@ I develop the Software with Version: Kepler Service Release 2. and bundled it wi
 * Ptolemy PLot https://ptolemy.eecs.berkeley.edu
 * log4j https://logging.apache.org/log4j
 * miglayout http://www.miglayout.com
+* HelpGUI http://helpgui.sourceforge.net/
 
 ## Licence
 All my software in source or binary form are under the FreeBSD-license.

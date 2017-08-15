@@ -41,6 +41,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -201,7 +202,7 @@ public class jfsOtterly extends JPanel {
 
 	
 
-	private JLabel bfout;
+//	private JLabel bfout;
 
 	private JToggleButton jt0;
 	private JLabel lblLed;
@@ -209,8 +210,8 @@ public class jfsOtterly extends JPanel {
 	private JToggleButton jt1;
 	private JTextField hights;
 	private float high_level=1465;
-	private float low_level=3910;
-	private JTextField lowts;
+//	private float low_level=3910;
+//	private JTextField lowts;
 	
 	/*
 	 * the sendbuffer will be send to the nucleoboard
@@ -230,6 +231,7 @@ public class jfsOtterly extends JPanel {
 	private JLabel testit;
 	private Checkbox testx; //now unused
 	private float trans_level = 100; // sollte gesetzt werden
+	private JButton helpit;
 	
 	private void update_send_buffer(){		
 		sh_period = Integer.parseInt(shts.getText());
@@ -242,7 +244,7 @@ public class jfsOtterly extends JPanel {
         for (int i = 0; i < bytes.length; i++) {
         	 sendbuffer[i+6]=bytes[i];
 		}   
-        update_parameter();
+        //update_parameter();
 	}
 	/*
 	 * Panel for open and close of the RS 232 port
@@ -253,7 +255,7 @@ public class jfsOtterly extends JPanel {
 	    rs.setBorder(BorderFactory.createTitledBorder("RS 232"));	 
 		jlistports = new JComboBox(getPorts());
 		portName = (String) jlistports.getItemAt(0);
-		rs.add(jlistports,"wrap");
+		rs.add(jlistports);
 		jlistports.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -262,7 +264,26 @@ public class jfsOtterly extends JPanel {
 			
 			}
 		});
-
+		/*
+		 * Help it here
+		 */
+		helpit = new JButton("Help me");
+		rs.add(helpit,"wrap");
+		helpit.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					JFrame helpFrame = new net.sourceforge.helpgui.gui.MainFrame("/docs/help/","java");
+					helpFrame.setSize(1024,800);
+					helpFrame.setVisible(true);
+				} catch (Exception e) {
+					log.error(e.getMessage());
+					e.printStackTrace();
+				}
+				
+			}
+		});
 		open = new JButton("open Connection");
 		rs.add(open);
 		open.addActionListener(new ActionListener() {			
@@ -308,8 +329,8 @@ public class jfsOtterly extends JPanel {
 	    pfs.setLayout(new MigLayout());
 	    pfs.setBorder(BorderFactory.createTitledBorder("Parameter"));
 	    fs.add(pfs,"wrap");
-	    bfout = new JLabel("");
-	    pfs.add(bfout,"span 2, wrap");
+	    //bfout = new JLabel("");
+//	    pfs.add(bfout,"span 2, wrap");
 	    pfs.add(new JLabel("SH period"));
 	    shts = new JTextField(Integer.toString(sh_period),8);
 	    pfs.add(shts,"wrap");
@@ -367,7 +388,7 @@ public class jfsOtterly extends JPanel {
 			public void keyPressed(KeyEvent arg0) {
 				if (arg0.getKeyCode()==KeyEvent.VK_ENTER){
 		            high_level = Float.parseFloat(hights.getText());
-		            update_parameter();
+		            //update_parameter();
 		        }						
 			}
 		});
@@ -501,7 +522,7 @@ public class jfsOtterly extends JPanel {
 		        if (state == ItemEvent.SELECTED) {	
 		        	out = RAW;
 		        	log.debug("Raw +");		
-		        	update_parameter();
+		        	//update_parameter();
 		        } else if (state == ItemEvent.DESELECTED) {	 
 		           // log.debug("Raw -"); 
 		        }
@@ -518,7 +539,7 @@ public class jfsOtterly extends JPanel {
 		        if (state == ItemEvent.SELECTED) {	
 		        	out = CALCULATE;
 		        	log.debug("Calc +");	
-		        	update_parameter();
+		        	//update_parameter();
 		        } else if (state == ItemEvent.DESELECTED) {	 
 		           // log.debug("Raw -"); 
 		        }
@@ -538,7 +559,7 @@ public class jfsOtterly extends JPanel {
 		        	} else {
 		        		out = TRANSMISSION;
 		        		log.debug("Trans +");	
-		        		update_parameter();
+		        		//update_parameter();
 		        	}
 		        } else if (state == ItemEvent.DESELECTED) {	 
 		           // log.debug("Trans -"); 
@@ -559,7 +580,7 @@ public class jfsOtterly extends JPanel {
 		        	} else {
 		        	out = EXTENTION;
 		        	log.debug("Ext +");	
-		        	update_parameter();
+		        	//update_parameter();
 		        	}
 		        } else if (state == ItemEvent.DESELECTED) {	 
 		           // log.debug("Ext -"); 
@@ -622,11 +643,12 @@ public class jfsOtterly extends JPanel {
 	    
 	}
 	
+	/*
 	protected void update_parameter() {
-		bfout.setText("update parameter Up "+df1.format(high_level)+" Low "+df1.format(low_level));	
+		bfout.setText("update parameter Up "+df1.format(high_level));	
 		//showit();
 	}
-
+	*/
 	
 
 	public jfsOtterly(){

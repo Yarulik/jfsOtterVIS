@@ -1,0 +1,27 @@
+html, body
+{
+   font-family: verdana;
+   font-size: 10pt; 
+}
+h2 {
+    color: #008080;
+}
+h3 {
+    color: #008080;
+}
+h4 {
+    color: #008080;
+}
+table{
+	border: 1px solid green;
+} 
+
+th, td
+{
+	 border: ;
+	 text-align: left;
+}
+code {
+	font-family:"Lucida Console", Courier, monospace;
+	font-size: 10pt;
+}
