@@ -242,6 +242,7 @@ public class jfsOtterly extends JPanel {
 	private JButton helpit;
 	private JButton jbsave;
 	private JButton jbload;
+	private JButton jbnm;
 	
 	private void update_send_buffer(){		
 		sh_period = Integer.parseInt(shts.getText());
@@ -484,12 +485,56 @@ public class jfsOtterly extends JPanel {
 		});
 	    pfs.add(jt2,"wrap");	    
 	    jbclear = new JButton("cls");
-	    pfs.add(jbclear,"wrap");
+	    pfs.add(jbclear);
 	    jbclear.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				plot.clear(false);
 				plot.repaint();
+				
+			}
+		});
+	    /*
+	     * Calibration in [nm]
+	     */
+	    jbnm = new JButton("[nm]");
+	    pfs.add(jbnm);
+	    jbnm.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int v1=0;
+				int v2=0;
+				
+				JOptionPane.showMessageDialog(null, "Select high frequenz file e.g 405nm.csv");
+				int returnVal = fc.showOpenDialog(getParent());
+				 if (returnVal == JFileChooser.APPROVE_OPTION) {
+			            File file = fc.getSelectedFile();
+			            FileReader fr;
+						try {
+							fr = new FileReader(file.getAbsolutePath());
+							BufferedReader br = new BufferedReader(fr);
+							String sLine;
+							int i = 0;
+							while ((sLine = br.readLine()) != null) {								
+								String[] seg = sLine.split(Pattern.quote( "," ));
+								display.x[i] = Float.parseFloat(seg[0]);
+								display.y[i] = Float.parseFloat(seg[1]);
+								i++;
+							}		
+							display.show_load_data();;
+							String s = file.getName();
+							v1 = Integer.parseInt(s.substring(0,3));
+							log.debug("v1 "+v1);
+						} catch (FileNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+				 }
 				
 			}
 		});
