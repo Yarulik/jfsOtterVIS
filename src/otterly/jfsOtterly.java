@@ -27,6 +27,11 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,12 +40,14 @@ import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.TooManyListenersException;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -212,7 +219,8 @@ public class jfsOtterly extends JPanel {
 	private float high_level=1465;
 //	private float low_level=3910;
 //	private JTextField lowts;
-	
+
+	final JFileChooser fc = new JFileChooser();
 	/*
 	 * the sendbuffer will be send to the nucleoboard
 	 * update_send_buffer sets the correct Values for SH and ICG period
@@ -232,6 +240,8 @@ public class jfsOtterly extends JPanel {
 	private Checkbox testx; //now unused
 	private float trans_level = 100; // sollte gesetzt werden
 	private JButton helpit;
+	private JButton jbsave;
+	private JButton jbload;
 	
 	private void update_send_buffer(){		
 		sh_period = Integer.parseInt(shts.getText());
@@ -473,15 +483,74 @@ public class jfsOtterly extends JPanel {
 			}
 		});
 	    pfs.add(jt2,"wrap");	    
-	    jbclear = new JButton("clear screen");
+	    jbclear = new JButton("cls");
 	    pfs.add(jbclear,"wrap");
-	    jbclear.addActionListener(new ActionListener() {
-			
+	    jbclear.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				plot.clear(false);
 				plot.repaint();
 				
+			}
+		});
+	    /*
+	     * Save and Load
+	     */
+	    jbsave = new JButton("save");
+	    pfs.add(jbsave);
+	    jbsave.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int returnVal = fc.showSaveDialog(getParent());
+				 if (returnVal == JFileChooser.APPROVE_OPTION) {
+			            File file = fc.getSelectedFile();
+			            FileWriter outfile;
+						try {
+							outfile = new FileWriter(file.getAbsoluteFile());
+							for (int i = 0; i < daten.length; i++) {
+								outfile.append(Float.toString(display.x[i])+" , "+Float.toString(display.y[i])+"\n");					
+							}
+							outfile.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}			           
+				 }      
+
+			}
+		});
+	    jbload = new JButton("load");
+	    pfs.add(jbload,"wrap");
+	    jbload.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int returnVal = fc.showOpenDialog(getParent());
+				 if (returnVal == JFileChooser.APPROVE_OPTION) {
+			            File file = fc.getSelectedFile();
+			            FileReader fr;
+						try {
+							fr = new FileReader(file.getAbsolutePath());
+							BufferedReader br = new BufferedReader(fr);
+							String sLine;
+							int i = 0;
+							while ((sLine = br.readLine()) != null) {								
+								String[] seg = sLine.split(Pattern.quote( "," ));
+								display.x[i] = Float.parseFloat(seg[0]);
+								display.y[i] = Float.parseFloat(seg[1]);
+								i++;
+							}		
+							display.show_load_data();;
+						} catch (FileNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+				 }
 			}
 		});
 	    // Ausgabe Optionen
@@ -1023,7 +1092,32 @@ public class jfsOtterly extends JPanel {
 	 */
 	public class DisplayIt {
 		float[] x = new float[max_buffer/2];
-		float[] y = new float[max_buffer/2];	
+		float[] y = new float[max_buffer/2];
+		float maxy = 0;
+		int index_maxy = 0;
+		
+		public int get_index_maxy(){
+			maxy = 0;
+			index_maxy = 0;
+			for (int i = 0; i < daten.length; i++){
+				if (display.y[i] > maxy) {
+					index_maxy = i;
+					maxy= display.y[i];
+				}
+			}			
+			return index_maxy;			
+		}
+		
+		public void show_load_data(){
+			get_index_maxy();
+			if (maxy > 3000) {
+				show_raw();
+			} else if (maxy > 10) {
+				show_transmission();
+			} else {
+				show_calculate();
+			}
+		}
 		
 		private void init_plot(){
 			jbclear.doClick();
