@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
 
 <head>
-    <title>plotoption</title>
+    <title>Output</title>
 
     <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
     <meta name="description" content="" />
@@ -12,18 +12,17 @@
 
     <link href="../styles/help.css" type="text/css" rel="stylesheet" />
 </head>
-
+    <h2>Output</h2>
+    <img src="../images/output.JPG" width="149" height="155" style="border: 0px;" />
+    <ol>
+    <li>Raw: The signal is displayed as recieved</li>
+    <li>Calculate: [darkline - signal ] / highlevel</li>
+    <li>Transmittance: 100 * [darkline - signal] / [darkline - baseline] <br /> 
+    This is calculated if  signal or  baseline is greater then 100 [on the ToDo list]</li>
+    <li>Absorbance: log10(  [darkline - baseline] / [darkline - signal])</li>
+    </ol>
+    <b>Here is room for improvement I think.</b>
 <body>
-<h3>Plotting Data</h3>
-<p>On the top left of the plotting area are buttons for some options.</p>
-<img src="../images/plot_symbols.JPG" width="116" height="40" style="border: 0px;" />
-<ol>
-<li>Printing the Plot</li>
-<li>Reset the Plot. With the left Mousebutton pressed down you can select 
-an area of the plot for more details. </li>
-<li>Add Title etc</li>
-<li>Auto-ranging </li>
-</ol>  
-<p>For more details copy and visit https://ptolemy.eecs.berkeley.edu/java/ptplot5.10/ptolemy/plot/doc/index.htm</p>
+
 </body>
 </html>

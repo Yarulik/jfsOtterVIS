@@ -3,5 +3,8 @@
   <tocitem text="General">
      <tocitem text="How To"       target="general/howto.html" home="true"/>
      <tocitem text="Plot options" target="general/plotoptions.html" />
+     <tocitem text="Parameter"    target="general/parameter.html" />
+     <tocitem text="Output"       target="general/output.html" />
+     <tocitem text="Multiple"     target="general/multi.html" />
   </tocitem>
 </toc>

@@ -487,7 +487,7 @@ public class jfsOtterly extends JPanel {
 	    // Ausgabe Optionen
 	    JPanel outfs = new JPanel();
 	    outfs.setLayout(new MigLayout());
-	    outfs.setBorder(BorderFactory.createTitledBorder("Ausgabe"));
+	    outfs.setBorder(BorderFactory.createTitledBorder("Output"));
 	    fs.add(outfs,"wrap");
 		testit = new JLabel("use darkline");
 		testx = new Checkbox();
@@ -592,7 +592,7 @@ public class jfsOtterly extends JPanel {
 	     */
 	    JPanel xfs = new JPanel();
 	    xfs.setLayout(new MigLayout());
-	    xfs.setBorder(BorderFactory.createTitledBorder("Aufzeichnung alle [ms]"));
+	    xfs.setBorder(BorderFactory.createTitledBorder("Multiple records [ms]"));
 	    fs.add(xfs,"wrap");
 	    jtbrecord = new JToggleButton("On", record);
 	    jtbrecord.setForeground(offColor);
@@ -691,7 +691,7 @@ public class jfsOtterly extends JPanel {
 					if ((y1<trans_level ) | (y<trans_level)){
 						display.y[j]=0;
 					} else {
-						display.y[j]= y/y1;
+						display.y[j]= 100*(y/y1);
 					}
 					display.x[j]=j;
 					log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);				
@@ -702,7 +702,7 @@ public class jfsOtterly extends JPanel {
 				for (int j = 0; j < daten.length; j++) {
 						y = dark[j] - daten[j];
 						y1 = dark[j] - base[j];
-						if ((y1<100) | (y<100)){
+						if ((y1<trans_level) | (y<trans_level)){
 							display.y[j]=0;
 						} else {
 							display.y[j]=(float) Math.log10(y1/y);
@@ -1040,7 +1040,7 @@ public class jfsOtterly extends JPanel {
 		}
 		public void show_transmission() {
 			init_plot();
-		    plot.setYRange(0,1); 			
+		    plot.setYRange(0,100); 			
 			for (int i = 0; i < daten.length; i++) {
 				plot.addPoint(0, display.x[i], display.y[i],true);					
 			}
