@@ -190,7 +190,7 @@ public class jfsOtterly extends JPanel {
 	 * Do we have a darkline
 	 */
 	private boolean gotdarkline = false;
-	private boolean usedarkline = false;
+	//private boolean usedarkline = false;
 	/*
 	 * Data from the spectroscope
 	 */
@@ -243,6 +243,7 @@ public class jfsOtterly extends JPanel {
 	private JButton jbsave;
 	private JButton jbload;
 	private JButton jbnm;
+	private boolean usenmscale = false;
 	
 	private void update_send_buffer(){		
 		sh_period = Integer.parseInt(shts.getText());
@@ -321,7 +322,7 @@ public class jfsOtterly extends JPanel {
 			}
 		});
 		status.setForeground(Color.BLUE);
-		rs.add(status);
+		rs.add(status,"span 2");
 		return rs;			
 	}
 	/*
@@ -498,13 +499,15 @@ public class jfsOtterly extends JPanel {
 	     * Calibration in [nm]
 	     */
 	    jbnm = new JButton("[nm]");
-	    pfs.add(jbnm);
+	    pfs.add(jbnm,"wrap");
 	    jbnm.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				int v1=0;
 				int v2=0;
+				int index_v1=0;
+				int index_v2=0;
 				
 				JOptionPane.showMessageDialog(null, "Select high frequenz file e.g 405nm.csv");
 				int returnVal = fc.showOpenDialog(getParent());
@@ -525,7 +528,9 @@ public class jfsOtterly extends JPanel {
 							display.show_load_data();;
 							String s = file.getName();
 							v1 = Integer.parseInt(s.substring(0,3));
-							log.debug("v1 "+v1);
+							index_v1=display.get_index_miny();
+							log.debug("v1 "+v1+" index "+index_v1+" value "+display.miny);
+							status.setText("["+v1+"] at "+index_v1+" with "+display.miny);
 						} catch (FileNotFoundException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -535,7 +540,49 @@ public class jfsOtterly extends JPanel {
 						}
 						
 				 }
-				
+				 JOptionPane.showMessageDialog(null, "Now select the low frequenz file e.g 650nm.csv");
+					returnVal = fc.showOpenDialog(getParent());
+					 if (returnVal == JFileChooser.APPROVE_OPTION) {
+				            File file = fc.getSelectedFile();
+				            FileReader fr;
+							try {
+								fr = new FileReader(file.getAbsolutePath());
+								BufferedReader br = new BufferedReader(fr);
+								String sLine;
+								int i = 0;
+								while ((sLine = br.readLine()) != null) {								
+									String[] seg = sLine.split(Pattern.quote( "," ));
+									display.x[i] = Float.parseFloat(seg[0]);
+									display.y[i] = Float.parseFloat(seg[1]);
+									i++;
+								}		
+								display.show_load_data();;
+								String s = file.getName();
+								v2 = Integer.parseInt(s.substring(0,3));
+								index_v2=display.get_index_miny();
+								//log.debug("v2 "+v2+" index "+index_v2+" value "+display.miny);
+								status.setText("["+v2+"] at "+index_v2+" with "+display.miny);
+							} catch (FileNotFoundException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							
+					 }
+				if((v1 > 0) & (v2 > 0)){
+					float nm_left = 0;
+					float nm_right = 0;
+					float nm_step = ( v2 - v1);
+					      nm_step = nm_step /(index_v2 - index_v1);
+					log.debug("nm_step "+nm_step);
+					nm_left = v1 - nm_step * index_v1;
+					nm_right = v2 + nm_step*(3916-index_v2);
+					status.setText("range "+nm_left+" - "+nm_right);
+					display.set_nm(nm_left,nm_step);					
+				} else
+					 JOptionPane.showMessageDialog(null, "I can't do the calibration !");
 			}
 		});
 	    /*
@@ -603,25 +650,28 @@ public class jfsOtterly extends JPanel {
 	    outfs.setLayout(new MigLayout());
 	    outfs.setBorder(BorderFactory.createTitledBorder("Output"));
 	    fs.add(outfs,"wrap");
-		testit = new JLabel("use darkline");
+	    /*
+	     * use nm -scale
+	     */
+		testit = new JLabel("use [nm]");
 		testx = new Checkbox();
-		testx.setState(usedarkline);
+		testx.setState(usenmscale);
 		testx.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if (testx.getState()){
-					if (gotdarkline==true){
-						usedarkline = true;
+					if (display.nm_left > 0){
+						usenmscale = true;
 						testit.setForeground(onColor);
 					} else{
 						testx.setState(false);
 					}
 				} else {
-					usedarkline = false;
+					usenmscale = false;
 					testit.setForeground(offColor);
 				}				
 			}
 		});
-		fs.add(testit);
+		fs.add(testit,"split 2");
 		fs.add(testx,"wrap");
 	    
 	    ButtonGroup group = new ButtonGroup();
@@ -1138,8 +1188,35 @@ public class jfsOtterly extends JPanel {
 	public class DisplayIt {
 		float[] x = new float[max_buffer/2];
 		float[] y = new float[max_buffer/2];
+		float[] nm = new float[max_buffer/2];
 		float maxy = 0;
 		int index_maxy = 0;
+		float miny = 0;
+		int index_miny = 0;
+		int nm_left = 0;
+		int nm_right = 0;
+		/*
+		 * index 0 corresponds to start
+		 * delta is nm/index
+		 */
+		public void set_nm(float start, float delta){
+			float temp;
+			for (int i = 0; i < daten.length; i++){
+				temp = delta*i;
+				display.nm[i] = start + temp;		
+			}
+			nm_left= (int)display.nm[0];
+			nm_right=(int)display.nm[daten.length-1];
+		}
+		
+		private void add(int i){
+			if (usenmscale==true){
+				plot.addPoint(0, display.nm[i], display.y[i],true);
+			} else {
+				plot.addPoint(0, display.x[i], display.y[i],true);	
+			}
+			
+		}
 		
 		public int get_index_maxy(){
 			maxy = 0;
@@ -1151,6 +1228,19 @@ public class jfsOtterly extends JPanel {
 				}
 			}			
 			return index_maxy;			
+		}
+		
+		public int get_index_miny(){
+			miny = display.y[0];
+			index_miny = 0;
+			
+			for (int i = 0; i < daten.length; i++){
+				if (display.y[i] < miny) {
+					index_miny = i;
+					miny= display.y[i];
+				}
+			}			
+			return index_miny;			
 		}
 		
 		public void show_load_data(){
@@ -1166,14 +1256,15 @@ public class jfsOtterly extends JPanel {
 		
 		private void init_plot(){
 			jbclear.doClick();
-		    plot.setXRange(0, 3700);	 			
+			if (usenmscale==true) plot.setXRange(nm_left, nm_right);
+			else   plot.setXRange(0, 3700);	 			
 		}
 	
 		public void show_raw() {
 			init_plot();
 		    plot.setYRange(1000, 4000);	 			
 			for (int i = 0; i < daten.length; i++) {
-				plot.addPoint(0, display.x[i], display.y[i],true);					
+				add(i);					
 			}
 
 		}
@@ -1181,7 +1272,7 @@ public class jfsOtterly extends JPanel {
 			init_plot();
 		    plot.setYRange(0,100); 			
 			for (int i = 0; i < daten.length; i++) {
-				plot.addPoint(0, display.x[i], display.y[i],true);					
+				add(i);					
 			}
 			
 		}
@@ -1189,7 +1280,7 @@ public class jfsOtterly extends JPanel {
 			init_plot();
 		    plot.setYRange(0,1); 			
 			for (int i = 0; i < daten.length; i++) {
-				plot.addPoint(0, display.x[i], display.y[i],true);					
+				add(i);					
 			}
 			
 		}
@@ -1197,13 +1288,14 @@ public class jfsOtterly extends JPanel {
 			init_plot();
 		    plot.setYRange(0,1); 			
 			for (int i = 0; i < daten.length; i++) {
-				plot.addPoint(0, display.x[i], display.y[i],true);					
+				add(i);					
 			}
 
 		}
 	
 		public void showdark(){
-			init_plot();
+			//init_plot();
+			plot.setXRange(0, 3700);
 		    plot.setYRange(1000, 4000);	 			
 			for (int i = 0; i < dark.length; i++) {
 				plot.addPoint(1, i, dark[i],true);					
@@ -1211,7 +1303,8 @@ public class jfsOtterly extends JPanel {
 
 		}
 		public void showbase(){
-		    init_plot();
+		    //init_plot();
+		    plot.setXRange(0, 3700);
 		    plot.setYRange(1000, 4000);
 			for (int i = 0; i < dark.length; i++) {
 				plot.addPoint(2, i, base[i],true);					
