@@ -190,7 +190,6 @@ public class jfsOtterly extends JPanel {
 	 * Do we have a darkline
 	 */
 	private boolean gotdarkline = false;
-	//private boolean usedarkline = false;
 	/*
 	 * Data from the spectroscope
 	 */
@@ -209,7 +208,6 @@ public class jfsOtterly extends JPanel {
 
 	
 
-//	private JLabel bfout;
 
 	private JToggleButton jt0;
 	private JLabel lblLed;
@@ -217,8 +215,6 @@ public class jfsOtterly extends JPanel {
 	private JToggleButton jt1;
 	private JTextField hights;
 	private float high_level=1465;
-//	private float low_level=3910;
-//	private JTextField lowts;
 
 	final JFileChooser fc = new JFileChooser();
 	/*
@@ -237,14 +233,20 @@ public class jfsOtterly extends JPanel {
 	private JTextField icgts;
 	private JToggleButton jt2;
 	private JLabel testit;
-	private Checkbox testx; //now unused
-	private float trans_level = 100; // sollte gesetzt werden
+	private Checkbox testx; 
+	/*
+	 * trans_level should be accassible
+	 * and the range for Extention and Absorbtion should be set according to the lightsource
+	 */
+	private float trans_level = 100;
 	private JButton helpit;
 	private JButton jbsave;
 	private JButton jbload;
 	private JButton jbnm;
 	private boolean usenmscale = false;
-	
+	/*
+	 * Sending data to the nucleo
+	 */
 	private void update_send_buffer(){		
 		sh_period = Integer.parseInt(shts.getText());
 		icg_period = Integer.parseInt(icgts.getText());		
@@ -256,7 +258,7 @@ public class jfsOtterly extends JPanel {
         for (int i = 0; i < bytes.length; i++) {
         	 sendbuffer[i+6]=bytes[i];
 		}   
-        //update_parameter();
+       
 	}
 	/*
 	 * Panel for open and close of the RS 232 port
@@ -341,8 +343,6 @@ public class jfsOtterly extends JPanel {
 	    pfs.setLayout(new MigLayout());
 	    pfs.setBorder(BorderFactory.createTitledBorder("Parameter"));
 	    fs.add(pfs,"wrap");
-	    //bfout = new JLabel("");
-//	    pfs.add(bfout,"span 2, wrap");
 	    pfs.add(new JLabel("SH period"));
 	    shts = new JTextField(Integer.toString(sh_period),8);
 	    pfs.add(shts,"wrap");
@@ -404,34 +404,7 @@ public class jfsOtterly extends JPanel {
 		        }						
 			}
 		});
-	    /*
-	    pfs.add(new JLabel("Low level"));
-	    lowts = new JTextField(Float.toString(low_level),8);
-	    pfs.add(lowts,"wrap");
-	    lowts.addKeyListener(new KeyListener() {
-			
-			@Override
-			public void keyTyped(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void keyReleased(KeyEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void keyPressed(KeyEvent arg0) {
-				if (arg0.getKeyCode()==KeyEvent.VK_ENTER){
-		            low_level = Float.parseFloat(lowts.getText());
-		            update_parameter();
-		        }		
-				
-			}
-		});
-	*/
+
 	    /*
 	     * Start the Record
 	     */
@@ -580,7 +553,8 @@ public class jfsOtterly extends JPanel {
 					nm_left = v1 - nm_step * index_v1;
 					nm_right = v2 + nm_step*(3916-index_v2);
 					status.setText("range "+nm_left+" - "+nm_right);
-					display.set_nm(nm_left,nm_step);					
+					display.set_nm(nm_left,nm_step);
+					JOptionPane.showMessageDialog(null, "calibration finished!");
 				} else
 					 JOptionPane.showMessageDialog(null, "I can't do the calibration !");
 			}
@@ -632,7 +606,8 @@ public class jfsOtterly extends JPanel {
 								display.x[i] = Float.parseFloat(seg[0]);
 								display.y[i] = Float.parseFloat(seg[1]);
 								i++;
-							}		
+							}	
+							fr.close();
 							display.show_load_data();;
 						} catch (FileNotFoundException e) {
 							// TODO Auto-generated catch block
@@ -645,7 +620,7 @@ public class jfsOtterly extends JPanel {
 				 }
 			}
 		});
-	    // Ausgabe Optionen
+	    // Output Optionen
 	    JPanel outfs = new JPanel();
 	    outfs.setLayout(new MigLayout());
 	    outfs.setBorder(BorderFactory.createTitledBorder("Output"));
@@ -703,7 +678,6 @@ public class jfsOtterly extends JPanel {
 		        if (state == ItemEvent.SELECTED) {	
 		        	out = CALCULATE;
 		        	log.debug("Calc +");	
-		        	//update_parameter();
 		        } else if (state == ItemEvent.DESELECTED) {	 
 		           // log.debug("Raw -"); 
 		        }
@@ -723,7 +697,6 @@ public class jfsOtterly extends JPanel {
 		        	} else {
 		        		out = TRANSMISSION;
 		        		log.debug("Trans +");	
-		        		//update_parameter();
 		        	}
 		        } else if (state == ItemEvent.DESELECTED) {	 
 		           // log.debug("Trans -"); 
@@ -744,7 +717,6 @@ public class jfsOtterly extends JPanel {
 		        	} else {
 		        	out = EXTENTION;
 		        	log.debug("Ext +");	
-		        	//update_parameter();
 		        	}
 		        } else if (state == ItemEvent.DESELECTED) {	 
 		           // log.debug("Ext -"); 
@@ -807,12 +779,7 @@ public class jfsOtterly extends JPanel {
 	    
 	}
 	
-	/*
-	protected void update_parameter() {
-		bfout.setText("update parameter Up "+df1.format(high_level));	
-		//showit();
-	}
-	*/
+
 	
 
 	public jfsOtterly(){
@@ -823,7 +790,6 @@ public class jfsOtterly extends JPanel {
 	    plot.setYRange(1000, 4000);
 	    plot.setXRange(0, 3700);	 
 	    plot.setMarksStyle("pixels");
-	    //plot.setConnected(true);
 	    plot.setAutomaticRescale(false);
 	    add(plot,"span 2 2");
 	    add(init_rs(),"wrap");
