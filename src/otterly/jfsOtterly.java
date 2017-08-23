@@ -27,6 +27,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -244,6 +247,14 @@ public class jfsOtterly extends JPanel {
 	private JButton jbload;
 	private JButton jbnm;
 	private boolean usenmscale = false;
+	/*
+	 * Stuff used for changing the x-scale in the plot
+	 */
+	private JLabel ldeltax;
+	private Checkbox chdeltax;
+	private boolean usedeltax = false;	
+	MouseMotionListener mxy = new maus();
+	
 	/*
 	 * Sending data to the nucleo
 	 */
@@ -648,7 +659,31 @@ public class jfsOtterly extends JPanel {
 		});
 		fs.add(testit,"split 2");
 		fs.add(testx,"wrap");
-	    
+	    /*
+	     * Hold selected x-axis window
+	     */
+		ldeltax  = new JLabel("use x-zoom");
+		fs.add(ldeltax,"split 2");
+		chdeltax =new Checkbox();
+		chdeltax.setState(usedeltax );
+		chdeltax.addItemListener(new ItemListener() {
+			
+			@Override
+			public void itemStateChanged(ItemEvent arg0) {
+				if (chdeltax.getState()){
+					usedeltax=true;
+					display.ourxrange = plot.getXRange();
+					status.setText(df1.format(display.ourxrange[0])+" - "+df1.format(display.ourxrange[1]));
+					//log.debug(usedeltax+" right "+display.ourxrange[0]+" left "+display.ourxrange[1]);
+					
+				} else {
+					usedeltax=false;
+					chdeltax.setState(false);
+				}
+				
+			}
+		});
+		fs.add(chdeltax,"wrap");
 	    ButtonGroup group = new ButtonGroup();
 	    final JRadioButton jrbraw = new JRadioButton("Raw");
 	    jrbraw.setSelected(true);
@@ -793,6 +828,7 @@ public class jfsOtterly extends JPanel {
 	    plot.setAutomaticRescale(false);
 	    add(plot,"span 2 2");
 	    add(init_rs(),"wrap");
+	    plot.addMouseMotionListener(mxy);
 	    add(functions());
 	    update_send_buffer();
 	    return;
@@ -1078,7 +1114,9 @@ public class jfsOtterly extends JPanel {
 				default:
 				}
 			}
-		}		
+		}
+		
+	
 	}
 	
 	
@@ -1161,6 +1199,8 @@ public class jfsOtterly extends JPanel {
 		int index_miny = 0;
 		int nm_left = 0;
 		int nm_right = 0;
+		private double[] ourxrange = {0.0,0.0};
+		
 		/*
 		 * index 0 corresponds to start
 		 * delta is nm/index
@@ -1222,8 +1262,17 @@ public class jfsOtterly extends JPanel {
 		
 		private void init_plot(){
 			jbclear.doClick();
-			if (usenmscale==true) plot.setXRange(nm_left, nm_right);
-			else   plot.setXRange(0, 3700);	 			
+			if (usedeltax==true)
+			{
+				plot.setXRange(ourxrange[0], ourxrange[1]);
+			} else {
+				if (usenmscale==true){ 
+					plot.setXRange(nm_left, nm_right);
+					}
+					else  {
+						plot.setXRange(0, 3700);	 			
+					}
+			}
 		}
 	
 		public void show_raw() {
@@ -1277,5 +1326,29 @@ public class jfsOtterly extends JPanel {
 			}
 
 		}
+	}
+	
+	/*
+	 * if the scale is changed the checkbutton is disabled
+	 */
+	public class maus implements MouseMotionListener {
+
+		@Override
+		public void mouseDragged(MouseEvent arg0) {
+			if (usedeltax == true) {
+				usedeltax = false;
+				chdeltax.setState(false);
+				status.setText("");
+			}
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+	
+		
 	}
 }
