@@ -48,7 +48,6 @@ public class OtterlyFrame extends JFrame {
 		is64bit = (System.getProperty("os.arch").indexOf("64") != -1);
 		String os = System.getProperty("os.name").toLowerCase();
 		String arch = System.getProperty("os.arch").toLowerCase();
-
 		log.debug("OS "+os+" is64 "+is64bit);
 		if (os.contains("linux")==true){
 			System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0");
