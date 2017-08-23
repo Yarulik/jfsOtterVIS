@@ -40,13 +40,27 @@ public class OtterlyFrame extends JFrame {
 		PropertyConfigurator.configure("jfslog4j.conf");
 	}
 	public OtterlyFrame() {
+		initos();
 		initcomponents();
 	}
+	private void initos() {
+		boolean is64bit = false;
+		is64bit = (System.getProperty("os.arch").indexOf("64") != -1);
+		String os = System.getProperty("os.name").toLowerCase();
+		String arch = System.getProperty("os.arch").toLowerCase();
+
+		log.debug("OS "+os+" is64 "+is64bit);
+		if (os.contains("linux")==true){
+			System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0");
+			log.debug(" set "+"/dev/ttyACM0");
+		}
+				
+	}
 	private void initcomponents() {
+		initos();
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JTabbedPane jtab = new JTabbedPane(JTabbedPane.TOP);
 		getContentPane().add(jtab);
-
         JPanel otterly = new jfsOtterly();
         jtab.add("Otterly",otterly);
         setSize(1200, 800);
