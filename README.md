@@ -18,9 +18,9 @@ I develop the software with Version: Kepler Service Release 2. and bundled it wi
 ## Linux
 * The software is successfully tested on a ubuntu 16.04 32bit Version
 * The RXTX Software encounters problems with a 64 bit linux Version ..Problematic frame: C [librxtxSerial.so+0x6d9d] read_byte_array+0x3d..
-* * The problem now solved on a ubuntu 16.04 64bit Version 
+* * The problem is now solved on a ubuntu 16.04 64bit Version 
 * * * sudo apt-get install default-jre
-* * * sudo agt-get install librxtx-java
+* * * sudo apt-get install librxtx-java
 * * * java -jar jfsOtterVIS_fat.jar now works.
 * * * Thanks to https://eclipsesource.com/de/blogs/2012/10/17/serial-communication-in-java-with-raspberry-pi-and-rxtx/
 * The program assumes the device on /dev/ttyACM0
