@@ -586,7 +586,11 @@ public class jfsOtterly extends JPanel {
 						try {
 							outfile = new FileWriter(file.getAbsoluteFile());
 							for (int i = 0; i < daten.length; i++) {
-								outfile.append(Float.toString(display.x[i])+" , "+Float.toString(display.y[i])+"\n");					
+								 if (usenmscale==true){ //nm scale output
+									 outfile.append(Float.toString(display.nm[i])+" , "+Float.toString(display.y[i])+"\n");
+								 } else { //raw output
+									 outfile.append(Float.toString(display.x[i])+" , "+Float.toString(display.y[i])+"\n");	
+								 }
 							}
 							outfile.close();
 						} catch (IOException e) {
