@@ -209,7 +209,7 @@ public class jfsOtterly extends JPanel {
 	int dbpointer = 0;
 	boolean dbnew = false;
 
-	
+	private Multyspectra ms;	
 
 
 	private JToggleButton jt0;
@@ -254,6 +254,18 @@ public class jfsOtterly extends JPanel {
 	private Checkbox chdeltax;
 	private boolean usedeltax = false;	
 	MouseMotionListener mxy = new maus();
+	private JButton leftbtn;
+	private JButton rightbtn;
+	private JButton plusbtn;
+	private JButton minusbtn;
+	private JButton zerobtn;
+	private JButton slistbtn;
+	private JButton llistbtn;
+	private JLabel countfs;
+	private JLabel infofs;
+	private JLabel ldmscans;
+	private Checkbox chmscans;
+	protected boolean usemscans = false;
 	
 	/*
 	 * Sending data to the nucleo
@@ -476,7 +488,7 @@ public class jfsOtterly extends JPanel {
 			public void actionPerformed(ActionEvent arg0) {
 				plot.clear(false);
 				plot.repaint();
-				
+				display.color=0;
 			}
 		});
 	    /*
@@ -637,13 +649,19 @@ public class jfsOtterly extends JPanel {
 		});
 	    // Output Optionen
 	    JPanel outfs = new JPanel();
-	    outfs.setLayout(new MigLayout());
+	    outfs.setLayout(new MigLayout("","[min!]","[min!]"));
 	    outfs.setBorder(BorderFactory.createTitledBorder("Output"));
 	    fs.add(outfs,"wrap");
+	    //Display Option
+	    JPanel disfs = new JPanel();
+	    disfs.setLayout(new MigLayout("","[min!]",""));
+	    disfs.setBorder(BorderFactory.createTitledBorder("Display use"));
+	    fs.add(disfs,"wrap");
+
 	    /*
 	     * use nm -scale
 	     */
-		testit = new JLabel("use [nm]");
+		testit = new JLabel("[nm]");
 		testx = new Checkbox();
 		testx.setState(usenmscale);
 		testx.addItemListener(new ItemListener() {
@@ -661,13 +679,13 @@ public class jfsOtterly extends JPanel {
 				}				
 			}
 		});
-		fs.add(testit,"split 2");
-		fs.add(testx,"wrap");
+		disfs.add(testit,"split 2");
+		disfs.add(testx);
 	    /*
 	     * Hold selected x-axis window
 	     */
-		ldeltax  = new JLabel("use x-zoom");
-		fs.add(ldeltax,"split 2");
+		ldeltax  = new JLabel("x-zoom");
+		disfs.add(ldeltax,"split 2");
 		chdeltax =new Checkbox();
 		chdeltax.setState(usedeltax );
 		chdeltax.addItemListener(new ItemListener() {
@@ -687,12 +705,36 @@ public class jfsOtterly extends JPanel {
 				
 			}
 		});
-		fs.add(chdeltax,"wrap");
+		disfs.add(chdeltax);
+		/*
+		 * Display multiple scans
+		 */
+		ldmscans = new JLabel("multiple");
+		disfs.add(ldmscans,"split 2");
+		chmscans = new Checkbox();
+		disfs.add(chmscans);
+		chmscans.addItemListener(new ItemListener() {
+			
+
+
+			@Override
+			public void itemStateChanged(ItemEvent arg0) {
+				if (chmscans.getState()){
+					usemscans =true;
+					
+				} else {
+					usemscans=false;
+					chmscans.setState(false);
+				}
+				
+			}
+		});
+		
 	    ButtonGroup group = new ButtonGroup();
 	    final JRadioButton jrbraw = new JRadioButton("Raw");
 	    jrbraw.setSelected(true);
 	    group.add(jrbraw);
-	    outfs.add(jrbraw,"wrap");
+	    outfs.add(jrbraw);
 	    jrbraw.addItemListener(new ItemListener() {			
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
@@ -724,7 +766,7 @@ public class jfsOtterly extends JPanel {
 		});	    
 	    JRadioButton jrbtrans = new JRadioButton("Transmission");
 	    group.add(jrbtrans);
-	    outfs.add(jrbtrans,"wrap");
+	    outfs.add(jrbtrans);
 	    jrbtrans.addItemListener(new ItemListener() {			
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
@@ -813,8 +855,63 @@ public class jfsOtterly extends JPanel {
 		        }				
 			}
 		});
-	    return fs;	    
-	    
+	    /*
+	     * Handle list of data
+	     */
+	    JPanel listfs = new JPanel();
+	    listfs.setLayout(new MigLayout("","[min!]","[min!]"));
+	    listfs.setBorder(BorderFactory.createTitledBorder("Datalist"));
+	    fs.add(listfs,"wrap");
+	    leftbtn = new JButton("<");
+	    listfs.add(leftbtn);
+	    leftbtn.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				ms.left();			
+			}
+		});
+	    rightbtn = new JButton(">");
+	    listfs.add(rightbtn);
+	    rightbtn.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				ms.right();			
+			}
+		});
+	    plusbtn = new JButton("+");
+	    listfs.add(plusbtn);
+	    plusbtn.addActionListener(new ActionListener() {		
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				ms.plus();
+			}
+		});
+	    minusbtn = new JButton("-");
+	    listfs.add(minusbtn);
+	    minusbtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				ms.minus();
+			}
+		});
+	    zerobtn = new JButton("0");
+	    listfs.add(zerobtn,"wrap");
+	    zerobtn.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				ms.zero();
+			}
+		});
+	    countfs = new JLabel("0/0");
+	    listfs.add(countfs);
+	    infofs = new JLabel(".....");
+	    listfs.add(infofs);
+	    slistbtn = new JButton("s");
+	    listfs.add(slistbtn);
+	    llistbtn = new JButton("l");
+	    listfs.add(llistbtn);
+
+	    return fs;	  
 	    
 	}
 	
@@ -835,6 +932,7 @@ public class jfsOtterly extends JPanel {
 	    plot.addMouseMotionListener(mxy);
 	    add(functions());
 	    update_send_buffer();
+		ms = new Multyspectra();
 	    return;
 	}
 	
@@ -969,7 +1067,12 @@ public class jfsOtterly extends JPanel {
 		public rs232io(CubbyHole ch) {
 			this.ch = ch;
 		}
+		
 		private synchronized void doit(int job){
+			/*
+			 * multiple Data management
+			 */
+			if (job == MULTI) time.next();
 			update_send_buffer();
 			sendeSerialPort(job);
 		}
@@ -980,7 +1083,7 @@ public class jfsOtterly extends JPanel {
 	    if (oeffneSerialPort(portName) != true)
 	        	return;
 	    /*
-	     * 
+	     * job is empty now
 	     */
 		while (true){
 			if ((record) && (dbnew==false)) doit(job);
@@ -1161,16 +1264,125 @@ public class jfsOtterly extends JPanel {
 		
 	}
 
+	/*
+	 * multiple spectra
+	 */
+	public class Buff {
+		long t = 0;
+		int n = 0;
+		float[] b =  new  float[max_buffer/2]; ;		
+	}
+	
+	public class Multyspectra {
+		int akt = 0;		//actual spectra
+		int nr = 0;			//counter
+		Buff dark = new Buff();
+		Buff base = new Buff();
+		Vector v = new Vector<>();
+		
+		public Multyspectra(){
+		}
+
+		public void init(){
+			dark.b = jfsOtterly.this.dark;
+			base.b = jfsOtterly.this.base;
+			v.clear();
+			akt = 0;
+			nr = 0;	
+			countfs.setText(akt+"/"+v.size());
+		}
+		
+		public void add(long when){
+//			if (nr==0){ //skip first fragment
+//				nr++;
+//			}
+//			else {
+			Buff buf = new Buff();
+			nr++;
+			buf.n = nr;
+			buf.t = when;
+		    buf.b = daten.clone();
+		    v.add(buf);
+		    akt = v.indexOf(buf);
+//			}
+		}
+		
+
+		public void left(){
+			if (v.size()==0){
+				JOptionPane.showMessageDialog(null, "Sorry got no list");
+			} else {
+				akt = akt - 1 ;
+				if (akt < 0) akt = v.size()-1;
+				log.debug("akt "+akt);
+				Buff b = (Buff) v.get(akt);
+				daten = b.b.clone();
+				countfs.setText(akt+"/"+v.size());
+				infofs.setText(""+b.t);
+				showit();
+			}
+		}
+
+		public void right(){
+			if (v.size() == 0){
+				JOptionPane.showMessageDialog(null, "Sorry got no list");
+			} else {
+				akt = akt + 1 ;
+				if (akt > v.size()-1) akt = 0;
+				log.debug("akt "+akt);
+				Buff b = (Buff) v.get(akt);
+				daten = b.b.clone();
+				countfs.setText(akt+"/"+v.size());
+				infofs.setText(""+b.t);
+				showit();
+			}
+		}
+		public void plus(){
+			add(0);
+			countfs.setText(akt+"/"+v.size());
+			infofs.setText(""+0);
+		}
+		public void minus(){
+			v.remove(akt);
+			akt = v.size();
+			left();
+		}
+		
+		public void zero(){
+			init();
+			jbclear.doClick();
+		}
+		
+		public void debug(){
+			Enumeration en = v.elements();
+			int i = 0;
+			while (en.hasMoreElements()) {
+				i++;
+				Buff bb = (Buff) en.nextElement();
+				log.debug("no "+i+" bei 100 "+bb.b[100]+" at "+bb.t);
+			}
+		}
+	}
+	
 	public class Timer {
+		
 
 		  private long startTime = 0;
 		  private long endTime   = 0;
 
 		  public void start(){
+			ms.init();
 		    this.startTime = System.currentTimeMillis();
 		  }
 
-		  public void end() {
+		  public void next() {			  
+		    ms.add(elapsedTime());
+			display();
+		 }
+
+		public void end() {
+			log.debug(" ms "+ms.v.size());
+			ms.debug();
 		    this.endTime   = System.currentTimeMillis();  
 		  }
 
@@ -1189,7 +1401,14 @@ public class jfsOtterly extends JPanel {
 		  public long elapsedTime(){
 			  return (System.currentTimeMillis() - this.startTime) ;
 		  }
+		  
+		  public void display(){
+			  countfs.setText(ms.nr-1+"/"+ms.v.size());
+			  infofs.setText(""+df.format(elapsedTime()));
+			 // status.setText("No :"+df.format(ms.nr)+" "+df.format(elapsedTime())+" [ms]");
+		  }
 		}
+	
 	/*
 	 *  contains the data to be displayed
 	 */
@@ -1204,6 +1423,7 @@ public class jfsOtterly extends JPanel {
 		int nm_left = 0;
 		int nm_right = 0;
 		private double[] ourxrange = {0.0,0.0};
+		private int color = 0;
 		
 		/*
 		 * index 0 corresponds to start
@@ -1221,9 +1441,9 @@ public class jfsOtterly extends JPanel {
 		
 		private void add(int i){
 			if (usenmscale==true){
-				plot.addPoint(0, display.nm[i], display.y[i],true);
+				plot.addPoint(color, display.nm[i], display.y[i],true);
 			} else {
-				plot.addPoint(0, display.x[i], display.y[i],true);	
+				plot.addPoint(color, display.x[i], display.y[i],true);	
 			}
 			
 		}
@@ -1265,7 +1485,11 @@ public class jfsOtterly extends JPanel {
 		}
 		
 		private void init_plot(){
-			jbclear.doClick();
+			if (usemscans== false) jbclear.doClick();
+			else {
+				color= color+1;
+				if (color > 20) color=0;
+			}
 			if (usedeltax==true)
 			{
 				plot.setXRange(ourxrange[0], ourxrange[1]);
