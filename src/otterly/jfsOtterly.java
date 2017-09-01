@@ -39,11 +39,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.TooManyListenersException;
 import java.util.Vector;
 import java.util.regex.Pattern;
+
+
+
+
+
+
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -266,6 +276,10 @@ public class jfsOtterly extends JPanel {
 	private JLabel ldmscans;
 	private Checkbox chmscans;
 	protected boolean usemscans = false;
+	private JRadioButton jrbraw;
+	private JRadioButton jrbcalc;
+	private JRadioButton jrbtrans;
+	private JRadioButton jrbext;
 	
 	/*
 	 * Sending data to the nucleo
@@ -731,7 +745,7 @@ public class jfsOtterly extends JPanel {
 		});
 		
 	    ButtonGroup group = new ButtonGroup();
-	    final JRadioButton jrbraw = new JRadioButton("Raw");
+	    jrbraw = new JRadioButton("Raw");
 	    jrbraw.setSelected(true);
 	    group.add(jrbraw);
 	    outfs.add(jrbraw);
@@ -748,7 +762,7 @@ public class jfsOtterly extends JPanel {
 		        }
 			}
 		});
-	    JRadioButton jrbcalc = new JRadioButton("Calculate");
+	    jrbcalc = new JRadioButton("Calculate");
 	    jrbcalc.setSelected(true);
 	    group.add(jrbcalc);
 	    outfs.add(jrbcalc,"wrap");
@@ -764,7 +778,7 @@ public class jfsOtterly extends JPanel {
 		        }
 			}
 		});	    
-	    JRadioButton jrbtrans = new JRadioButton("Transmission");
+	    jrbtrans = new JRadioButton("Transmission");
 	    group.add(jrbtrans);
 	    outfs.add(jrbtrans);
 	    jrbtrans.addItemListener(new ItemListener() {			
@@ -784,7 +798,7 @@ public class jfsOtterly extends JPanel {
 		        }
 			}
 		});	   
-	    JRadioButton jrbext = new JRadioButton("Absorbance");
+	    jrbext = new JRadioButton("Absorbance");
 	    group.add(jrbext);
 	    outfs.add(jrbext,"wrap");
 	    jrbext.addItemListener(new ItemListener() {			
@@ -908,9 +922,154 @@ public class jfsOtterly extends JPanel {
 	    listfs.add(infofs);
 	    slistbtn = new JButton("s");
 	    listfs.add(slistbtn);
+	    slistbtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int returnVal = fc.showSaveDialog(getParent());
+				 if (returnVal == JFileChooser.APPROVE_OPTION) {
+			            File file = fc.getSelectedFile();
+			            FileWriter outfile;
+							String s = file.getAbsolutePath();
+							int n =s.lastIndexOf(".");
+							if (n > 0) s = s.substring(0,n);
+							log.debug(n + "  "+s);
+							Enumeration en = ms.v.elements();
+							while (en.hasMoreElements()) {
+								Buff bb = (Buff) en.nextElement();
+								String cc ="";
+								// what to save
+								switch (out){
+								case CALCULATE:
+									calc_data();
+									cc="_calc";
+								break;
+								case TRANSMISSION:				
+									trans_data();
+									cc="_trans";
+								break;
+								case EXTENTION:	
+									extent_data();
+									cc="_ext";
+								break;	
+								default:
+									raw_data();
+									cc="_raw";
+									break;			
+							   }
+								String sf = s+"_"+(bb.n+1000)+"_"+bb.t+cc+".csv";
+								try {
+									outfile = new FileWriter(sf);
+									for (int i = 0; i < daten.length; i++) {
+									 if (usenmscale==true){ //nm scale output
+										 outfile.append(Float.toString(display.nm[i])+" , "+Float.toString(bb.b[i])+"\n");
+									 } else { //raw output
+										 outfile.append(Float.toString(display.x[i])+" , "+Float.toString(bb.b[i])+"\n");	
+									 }
+								}
+								outfile.close();									
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}	
+								log.debug("write "+sf);
+							}
+				 }
+
+				
+			}
+		});
 	    llistbtn = new JButton("l");
 	    listfs.add(llistbtn);
+	    llistbtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				int nr =0;
+				long tt = 0;
+				int outx = 0;
+				int returnVal = fc.showOpenDialog(getParent());
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File file = fc.getSelectedFile();
+					String s = file.getAbsolutePath();
 
+					Path dir = Paths.get(file.getPath());
+					dir = dir.getParent();
+					log.debug(dir);
+					int n = s.lastIndexOf("\\");
+					s = s.substring(n+1);
+					n = s.indexOf("_");
+					s = s.substring(0,n);
+					log.debug(s);
+		        try {
+		            DirectoryStream<Path> ds = Files.newDirectoryStream(dir, s+"*.{csv}");
+		            for (Path entry: ds) {
+		               // log.debug(entry);
+			            FileReader fr;
+						try {
+							fr = new FileReader(entry.toString());
+							String rest = "";
+							String work = "";
+							outx= -1;
+							s = entry.toString();
+							n =s.lastIndexOf(".");
+							if ( n>0 ) rest = s.substring(0,n); else {
+								log.error("Error in Datalist");
+							}
+							//log.debug(rest);
+							n =rest.lastIndexOf("_");
+							if ( n>0 ){
+								work = rest.substring(n+1);
+								rest = rest.substring(0,n); // _raw weg
+								log.debug(rest);
+								log.debug(work);
+								if (work.equals("raw")) outx = RAW;
+								if (work.equals("calc")) outx =CALCULATE;
+								if (work.equals("trans")) outx = TRANSMISSION;
+								if (work.equals("ext")) outx = EXTENTION;
+							} else log.error("Error in Datalist z.B _raw");
+							n = rest.lastIndexOf("_");
+							if (n>0){
+							 work= rest.substring(n+1);
+							 rest= rest.substring(0,n);
+							 tt = Long.parseLong(work);
+							} else log.error("Error in Datalist z.B time");
+							n = rest.lastIndexOf("_");
+							if (n>0){
+								 work= rest.substring(n+1);
+								 rest= rest.substring(0,n);
+								 nr = Integer.parseInt(work)-1000;
+								 //log.debug(work);
+								} else log.error("Error in Datalist z.B nr");
+							set_out(outx);
+							BufferedReader br = new BufferedReader(fr);
+							String sLine;
+							int i = 0;
+							while ((sLine = br.readLine()) != null) {								
+								String[] seg = sLine.split(Pattern.quote( "," ));
+								display.x[i] = Float.parseFloat(seg[0]);
+								daten[i] = Float.parseFloat(seg[1]);
+								i++;
+							}	
+							fr.close();
+							ms.addload(nr,tt);
+							//display.show_load_data();;
+						} catch (FileNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+				       
+		            }
+		        } catch (IOException e) {
+		            e.printStackTrace();
+		        }			// TODO Auto-generated method stub
+				
+			}
+			}
+		});
 	    return fs;	  
 	    
 	}
@@ -944,52 +1103,143 @@ public class jfsOtterly extends JPanel {
 		plot.clear(false);
 			switch (out){
 			case CALCULATE:
-				for (int j = 0; j < daten.length; j++) {
-					y = dark[j] - daten[j];
-					if (y < 0) y= 0;
-					display.y[j]= (y / (dark[j]-high_level));
-					display.x[j]=j;		
-				}
+				calc_data();
 				display.show_calculate();
 			break;
 			case TRANSMISSION:				
-				for (int j = 0; j < daten.length; j++) {
-					y = dark[j] - daten[j];
-					y1 = dark[j] - base[j];
-					if ((y1<trans_level ) | (y<trans_level)){
-						display.y[j]=0;
-					} else {
-						display.y[j]= 100*(y/y1);
-					}
-					display.x[j]=j;
-					log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);				
-				}
+				trans_data();
 				display.show_transmission();
 			break;
 			case EXTENTION:	
-				for (int j = 0; j < daten.length; j++) {
-						y = dark[j] - daten[j];
-						y1 = dark[j] - base[j];
-						if ((y1<trans_level) | (y<trans_level)){
-							display.y[j]=0;
-						} else {
-							display.y[j]=(float) Math.log10(y1/y);
-						}
-
-						display.x[j]=j;
-						log.debug("j "+j+" y "+y+ " y1 "+ y1+ " disp.y "+display.y[j]);	
-				}	
+				extent_data();	
 				display.show_absorbance();
 			break;	
 			default:
-				for (int j = 0; j < daten.length; j++) {
-					display.y[j]= daten[j];
-					display.x[j]=j;
-					}	
+				raw_data();	
 				display.show_raw();
 				break;			
 		}  
 		
+	}
+	
+	private void set_out(int i){
+		out = i;
+		switch(i){
+	case CALCULATE:
+		jrbcalc.setSelected(true);
+		jrbcalc.requestFocus();
+	break;
+	case TRANSMISSION:				
+		jrbtrans.setSelected(true);	
+		jrbtrans.requestFocus();
+		break;
+	case EXTENTION:	
+		jrbext.setSelected(true);
+		jrbext.requestFocus();
+	break;	
+	default:
+		jrbraw.setSelected(true);
+		jrbraw.requestFocus();
+		break;			
+}  
+	}
+	/*
+	 * 
+	 */
+	private boolean get_scan_info(String s, int nr, long t, int outx ){
+		boolean noerr = true;
+		String rest = "";
+		String work = "";
+		outx= -1;
+		int n =s.lastIndexOf(".");
+		if ( n>0 ) rest = s.substring(0,n); else {
+			noerr = false;
+		}
+		//log.debug(rest);
+		n =rest.lastIndexOf("_");
+		if ( n>0 ){
+			work = rest.substring(n+1);
+			rest = rest.substring(0,n); // _raw weg
+			log.debug(rest);
+			log.debug(work);
+			if (work.equals("raw")) outx = RAW;
+			if (work.equals("calc")) outx =CALCULATE;
+			if (work.equals("trans")) outx = TRANSMISSION;
+			if (work.equals("ext")) outx = EXTENTION;
+			if (outx <0) noerr = false;
+			log.debug(outx);
+		} else noerr= false;
+		n = rest.lastIndexOf("_");
+		if (n>0){
+		 work= rest.substring(n+1);
+		 rest= rest.substring(0,n);
+		 t = Long.parseLong(work);
+		 //log.debug(work);
+		} else noerr=false;
+		n = rest.lastIndexOf("_");
+		if (n>0){
+			 work= rest.substring(n+1);
+			 rest= rest.substring(0,n);
+			 nr = Integer.parseInt(work)-1000;
+			 //log.debug(work);
+			} else noerr=false;
+		return noerr;
+	}
+	/**
+	 * 
+	 */
+	private void raw_data() {
+		for (int j = 0; j < daten.length; j++) {
+			display.y[j]= daten[j];
+			display.x[j]=j;
+			}
+	}
+	/**
+	 * 
+	 */
+	private void extent_data() {
+		float y;
+		float y1;
+		for (int j = 0; j < daten.length; j++) {
+				y = dark[j] - daten[j];
+				y1 = dark[j] - base[j];
+				if ((y1<trans_level) | (y<trans_level)){
+					display.y[j]=0;
+				} else {
+					display.y[j]=(float) Math.log10(y1/y);
+				}
+
+				display.x[j]=j;
+		}
+	}
+	/**
+	 * 
+	 */
+	private void trans_data() {
+		float y;
+		float y1;
+		for (int j = 0; j < daten.length; j++) {
+			y = dark[j] - daten[j];
+			y1 = dark[j] - base[j];
+			if ((y1<trans_level ) | (y<trans_level)){
+				display.y[j]=0;
+			} else {
+				display.y[j]= 100*(y/y1);
+			}
+			display.x[j]=j;			
+		}
+	}
+	/**
+	 * 
+	 */
+	private void calc_data() {
+		float y;
+		for (int j = 0; j < daten.length; j++) {
+			y = dark[j] - daten[j];
+			if (y < 0) y= 0;
+			display.y[j]= (y / (dark[j]-high_level));
+			display.x[j]=j;		
+		}
 	}
 	
 	
@@ -1281,6 +1531,15 @@ public class jfsOtterly extends JPanel {
 		Vector v = new Vector<>();
 		
 		public Multyspectra(){
+		}
+
+		public void addload(int nr2, long tt) {
+			Buff buf = new Buff();
+			buf.n = nr2;
+			buf.t = tt;
+			buf.b = daten.clone();
+			v.add(buf);
+			countfs.setText(akt+"/"+v.size());		
 		}
 
 		public void init(){
