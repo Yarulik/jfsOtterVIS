@@ -251,7 +251,7 @@ public class jfsOtterly extends JPanel {
 	 * trans_level should be accassible
 	 * and the range for Extention and Absorbtion should be set according to the lightsource
 	 */
-	private float trans_level = 100;
+	private float trans_level = 1;
 	private JButton helpit;
 	private JButton jbsave;
 	private JButton jbload;
@@ -1219,13 +1219,26 @@ public class jfsOtterly extends JPanel {
 		float y;
 		float y1;
 		for (int j = 0; j < daten.length; j++) {
-			y = dark[j] - daten[j];
-			y1 = dark[j] - base[j];
-			if ((y1<trans_level ) | (y<trans_level)){
-				display.y[j]=0;
+			y1 = dark[j] -base[j];
+			if (y1 > trans_level){ // ligthsource is strong enough
+				y = dark[j] -daten[j];
+				y = y / high_level;
+				y1 = y1 / high_level;
+				display.y[j]= (y/y1)*100;
 			} else {
-				display.y[j]= 100*(y/y1);
+				display.y[j] = 100;
 			}
+			
+//			y = dark[j] - daten[j];
+//			y = y /(dark[j]-high_level);	//
+//			y1 = dark[j] - base[j];
+//			y1 = y1/(dark[j]-high_level);
+//			log.debug("y "+y+" y1 "+y1+" daten[j] "+daten[j]+" high_level "+high_level);
+//			if ((y1<trans_level ) | (y<trans_level)){
+//				display.y[j]=0;
+//			} else {
+//				display.y[j]= 100*(y/y1);
+//			}
 			display.x[j]=j;			
 		}
 	}
