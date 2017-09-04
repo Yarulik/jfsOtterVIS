@@ -251,7 +251,7 @@ public class jfsOtterly extends JPanel {
 	 * trans_level should be accassible
 	 * and the range for Extention and Absorbtion should be set according to the lightsource
 	 */
-	private float trans_level = 1;
+	private float trans_level = 200;
 	private JButton helpit;
 	private JButton jbsave;
 	private JButton jbload;
@@ -280,6 +280,7 @@ public class jfsOtterly extends JPanel {
 	private JRadioButton jrbcalc;
 	private JRadioButton jrbtrans;
 	private JRadioButton jrbext;
+	private JTextField transts;
 	
 	/*
 	 * Sending data to the nucleo
@@ -817,7 +818,30 @@ public class jfsOtterly extends JPanel {
 		           // log.debug("Ext -"); 
 		        }
 			}
-		});	    
+		});	  
+	    /*
+	     * translevel
+	     */
+	    outfs.add(new JLabel("Transmissionlevel"));
+	    transts = new JTextField(Float.toString(trans_level),8);
+	    outfs.add(transts,"wrap");
+	    transts.addKeyListener(new KeyListener() {			
+			@Override
+			public void keyTyped(KeyEvent arg0) {
+				// TODO Auto-generated method stub			
+			}			
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				// TODO Auto-generated method stub				
+			}			
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+				if (arg0.getKeyCode()==KeyEvent.VK_ENTER){
+		            trans_level = Float.parseFloat(transts.getText());
+		            //update_parameter();
+		        }						
+			}
+		});
 	    /*
 	     * Multiple records
 	     */
@@ -1201,14 +1225,15 @@ public class jfsOtterly extends JPanel {
 		float y;
 		float y1;
 		for (int j = 0; j < daten.length; j++) {
-				y = dark[j] - daten[j];
-				y1 = dark[j] - base[j];
-				if ((y1<trans_level) | (y<trans_level)){
-					display.y[j]=0;
-				} else {
-					display.y[j]=(float) Math.log10(y1/y);
-				}
-
+			y1 = dark[j] -base[j];
+			if (y1 > trans_level){ // ligthsource is strong enough ?
+				y = dark[j] -daten[j];
+				y = y / high_level;
+				y1 = y1 / high_level;
+				display.y[j]= (float) Math.log10(y1/y);
+			} else {
+				display.y[j] = 0;
+			}
 				display.x[j]=j;
 		}
 	}
@@ -1220,7 +1245,7 @@ public class jfsOtterly extends JPanel {
 		float y1;
 		for (int j = 0; j < daten.length; j++) {
 			y1 = dark[j] -base[j];
-			if (y1 > trans_level){ // ligthsource is strong enough
+			if (y1 > trans_level){ // ligthsource is strong enough ?
 				y = dark[j] -daten[j];
 				y = y / high_level;
 				y1 = y1 / high_level;
@@ -1228,17 +1253,6 @@ public class jfsOtterly extends JPanel {
 			} else {
 				display.y[j] = 100;
 			}
-			
-//			y = dark[j] - daten[j];
-//			y = y /(dark[j]-high_level);	//
-//			y1 = dark[j] - base[j];
-//			y1 = y1/(dark[j]-high_level);
-//			log.debug("y "+y+" y1 "+y1+" daten[j] "+daten[j]+" high_level "+high_level);
-//			if ((y1<trans_level ) | (y<trans_level)){
-//				display.y[j]=0;
-//			} else {
-//				display.y[j]= 100*(y/y1);
-//			}
 			display.x[j]=j;			
 		}
 	}
