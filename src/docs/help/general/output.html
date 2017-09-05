@@ -13,13 +13,16 @@
     <link href="../styles/help.css" type="text/css" rel="stylesheet" />
 </head>
     <h2>Output</h2>
-    <img src="../images/output.JPG" width="149" height="155" style="border: 0px;" />
+    <img src="../images/output.JPG" width="212" height="116" style="border: 0px;" />
     <ol>
     <li>Raw: The signal is displayed as recieved</li>
     <li>Calculate: [darkline - signal ] / highlevel</li>
-    <li>Transmittance: 100 * [darkline - signal] / [darkline - baseline] <br /> 
-    This is calculated if  signal or  baseline is greater then 100 [on the ToDo list]</li>
-    <li>Absorbance: log10(  [darkline - baseline] / [darkline - signal])</li>
+    <li>Transmittance: if [darkline - base] is lower than transmissionlevel the signal will be set to 100.<br />
+    The idea is that the spectrum of the light source is here not strong enought. <br />
+    At the other points y = 100*[(darkline-signal)/high_level]/[(darkline-base)/high_level] 
+    </li>
+    <li>Absorbance: if [darkline - base] is lower than transmissionlevel the signal will be set to 0.<br />
+    At the other points y = log10[(darkline-base)/high_level]/[(darkline-signal)/high_level]
     </ol>
     <b>Here is room for improvement I think.</b>
     <h2>Save / Load</h2>
