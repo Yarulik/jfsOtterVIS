@@ -7,6 +7,7 @@
     <tocitem text="Output"       target="general/output.html" />
     <tocitem text="Multiple"     target="general/multi.html" />
     <tocitem text="nm scale"     target="general/nm_scale.html" />
+    <tocitem text="Octave"       target="general/octave.html" />
     <tocitem text="ReadMe"       target="general/readme.html" />   
   </tocitem>
 </toc>

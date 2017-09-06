@@ -55,6 +55,9 @@ import java.util.regex.Pattern;
 
 
 
+
+
+
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
@@ -75,11 +78,16 @@ import net.miginfocom.swing.MigLayout;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.math.array.util.Function;
+import org.math.plot.Plot2DPanel;
+import org.math.plot.Plot3DPanel;
 
 import ptolemy.plot.Plot;
 
 
-
+import static java.lang.Math.PI;
+import static java.lang.Math.exp;
+import static org.math.array.DoubleArray.*;
 
 
 public class jfsOtterly extends JPanel {
@@ -281,6 +289,11 @@ public class jfsOtterly extends JPanel {
 	private JRadioButton jrbtrans;
 	private JRadioButton jrbext;
 	private JTextField transts;
+
+	private JButton d3btn;
+	// zum 3d testen
+	static double sigma = 0.1;
+	static double erw = 0;
 	
 	/*
 	 * Sending data to the nucleo
@@ -1092,6 +1105,40 @@ public class jfsOtterly extends JPanel {
 		        }			// TODO Auto-generated method stub
 				
 			}
+			}
+		});
+	    
+	    d3btn = new JButton("3");
+	    listfs.add(d3btn);
+	    d3btn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Plot3DPanel plot3d = new Plot3DPanel();
+				int count = 0;
+				double[] exw = one(max_buffer/2);
+				double[] emw = one(max_buffer/2);
+				double[] flu = new double[max_buffer/2];
+				for (int i1 = 0; i1 < daten.length; i1++) {
+					exw[i1] = display.x[i1];
+				}					
+					Enumeration en = ms.v.elements();
+					while (en.hasMoreElements()) {
+						Buff bb = (Buff) en.nextElement();
+						for (int i1 = 0; i1 < daten.length; i1++) {
+							flu[i1] = bb.b[i1];
+						}						
+						count++;
+						for (int i1 = 0; i1 < daten.length; i1++) {
+							emw[i1] = count;
+						}	
+					plot3d.addLinePlot(""+bb.t,exw,emw,flu);					
+					}
+				
+				JFrame frame = new JFrame(" 3D ");
+				frame.setSize(600, 400);
+				frame.setContentPane(plot3d);
+				frame.setVisible(true);// TODO Auto-generated method stub				
 			}
 		});
 	    return fs;	  

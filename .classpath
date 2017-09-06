@@ -7,5 +7,7 @@
 	<classpathentry kind="lib" path="lib/rxtx-2.1.7.jar"/>
 	<classpathentry kind="lib" path="lib/plotapplet.jar"/>
 	<classpathentry kind="lib" path="lib/helpgui-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/jmatharray.jar"/>
+	<classpathentry kind="lib" path="lib/jmathplot.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

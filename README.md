@@ -33,6 +33,7 @@ I develop the software with Version: Kepler Service Release 2. and bundled it wi
 * miglayout http://www.miglayout.com
 * HelpGUI http://helpgui.sourceforge.net/
 * fatjar http://kurucz-grafika.de/fatjar
+* 3D plotting https://github.com/yannrichet/jmathplot
 
 ## Licence
 All my software in source or binary form are under the FreeBSD-license.
