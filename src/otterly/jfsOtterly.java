@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
+import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,6 +49,7 @@ import java.util.Enumeration;
 import java.util.TooManyListenersException;
 import java.util.Vector;
 import java.util.regex.Pattern;
+
 
 
 
@@ -294,7 +296,8 @@ public class jfsOtterly extends JPanel {
 	// zum 3d testen
 	static double sigma = 0.1;
 	static double erw = 0;
-	
+	// Filefilter wegen linux
+	private String filterstring = "";
 	/*
 	 * Sending data to the nucleo
 	 */
@@ -1039,7 +1042,9 @@ public class jfsOtterly extends JPanel {
 					s = s.substring(0,n);
 					log.debug(s);
 		        try {
-		            DirectoryStream<Path> ds = Files.newDirectoryStream(dir, s+"*.{csv}");
+		        	filterstring=".*"+s+".*\\.csv";
+		            //DirectoryStream<Path> ds = Files.newDirectoryStream(dir, s+"*.{csv}");
+		            DirectoryStream<Path> ds = Files.newDirectoryStream(dir,filter);
 		            for (Path entry: ds) {
 		               // log.debug(entry);
 			            FileReader fr;
@@ -1107,7 +1112,8 @@ public class jfsOtterly extends JPanel {
 			}
 			}
 		});
-	    
+	   
+		
 	    d3btn = new JButton("3");
 	    listfs.add(d3btn);
 	    d3btn.addActionListener(new ActionListener() {
@@ -1145,7 +1151,18 @@ public class jfsOtterly extends JPanel {
 	    
 	}
 	
+	 /*
+     * to remove the linux problems 
+     */
+    DirectoryStream.Filter<Path> filter = new Filter<Path>() {
+		
+		@Override
+		public boolean accept(Path arg0) throws IOException {
+			log.debug(filterstring+"  "+arg0.toString());
+			return arg0.toString().matches(filterstring);
 
+		}
+	};
 	
 
 	public jfsOtterly(){
