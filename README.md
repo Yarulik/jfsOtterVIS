@@ -23,7 +23,7 @@ I develop the software with Version: Kepler Service Release 2. and bundled it wi
 * * * sudo apt-get install librxtx-java
 * * * java -jar jfsOtterVIS_fat.jar now works.
 * * * Thanks to https://eclipsesource.com/de/blogs/2012/10/17/serial-communication-in-java-with-raspberry-pi-and-rxtx/
-* The program assumes the device on /dev/ttyACM0 (please contact my blog  http://science@jefro.de if you need another address)
+* The program assumes the device on /dev/ttyACM0 (please contact my blog  http://science.jefro.de if you need another address)
 * Instead of running as root try chmod 777 /dev/ttyACM0
 
 ## Dependencies
