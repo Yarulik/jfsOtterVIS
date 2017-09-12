@@ -40,14 +40,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
+import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.TooManyListenersException;
 import java.util.Vector;
 import java.util.regex.Pattern;
+
+
+
+
+
+
+
 
 
 
@@ -294,7 +304,8 @@ public class jfsOtterly extends JPanel {
 	// zum 3d testen
 	static double sigma = 0.1;
 	static double erw = 0;
-	
+	// Filefilter wegen linux
+	private String filterstring = "";
 	/*
 	 * Sending data to the nucleo
 	 */
@@ -971,7 +982,7 @@ public class jfsOtterly extends JPanel {
 							int n =s.lastIndexOf(".");
 							if (n > 0) s = s.substring(0,n);
 							log.debug(n + "  "+s);
-							Enumeration en = ms.v.elements();
+							Enumeration en = ((Vector<String>) ms.v).elements();
 							while (en.hasMoreElements()) {
 								Buff bb = (Buff) en.nextElement();
 								String cc ="";
@@ -1039,7 +1050,9 @@ public class jfsOtterly extends JPanel {
 					s = s.substring(0,n);
 					log.debug(s);
 		        try {
-		            DirectoryStream<Path> ds = Files.newDirectoryStream(dir, s+"*.{csv}");
+		        	filterstring=".*"+s+".*\\.csv";
+		            //DirectoryStream<Path> ds = Files.newDirectoryStream(dir, s+"*.{csv}");
+		            DirectoryStream<Path> ds = Files.newDirectoryStream(dir,filter);
 		            for (Path entry: ds) {
 		               // log.debug(entry);
 			            FileReader fr;
@@ -1103,11 +1116,12 @@ public class jfsOtterly extends JPanel {
 		        } catch (IOException e) {
 		            e.printStackTrace();
 		        }			// TODO Auto-generated method stub
-				
+				ms.sort();
 			}
 			}
 		});
-	    
+	   
+		
 	    d3btn = new JButton("3");
 	    listfs.add(d3btn);
 	    d3btn.addActionListener(new ActionListener() {
@@ -1122,7 +1136,7 @@ public class jfsOtterly extends JPanel {
 				for (int i1 = 0; i1 < daten.length; i1++) {
 					exw[i1] = display.x[i1];
 				}					
-					Enumeration en = ms.v.elements();
+					Enumeration en = ((Vector<String>) ms.v).elements();
 					while (en.hasMoreElements()) {
 						Buff bb = (Buff) en.nextElement();
 						for (int i1 = 0; i1 < daten.length; i1++) {
@@ -1145,7 +1159,18 @@ public class jfsOtterly extends JPanel {
 	    
 	}
 	
+	 /*
+     * to remove the linux problems 
+     */
+    DirectoryStream.Filter<Path> filter = new Filter<Path>() {
+		
+		@Override
+		public boolean accept(Path arg0) throws IOException {
+			log.debug(filterstring+"  "+arg0.toString());
+			return arg0.toString().matches(filterstring);
 
+		}
+	};
 	
 
 	public jfsOtterly(){
@@ -1602,7 +1627,8 @@ public class jfsOtterly extends JPanel {
 		int nr = 0;			//counter
 		Buff dark = new Buff();
 		Buff base = new Buff();
-		Vector v = new Vector<>();
+		//Vector v = new Vector<>();
+		List v = new Vector();
 		
 		public Multyspectra(){
 		}
@@ -1626,10 +1652,6 @@ public class jfsOtterly extends JPanel {
 		}
 		
 		public void add(long when){
-//			if (nr==0){ //skip first fragment
-//				nr++;
-//			}
-//			else {
 			Buff buf = new Buff();
 			nr++;
 			buf.n = nr;
@@ -1637,7 +1659,6 @@ public class jfsOtterly extends JPanel {
 		    buf.b = daten.clone();
 		    v.add(buf);
 		    akt = v.indexOf(buf);
-//			}
 		}
 		
 
@@ -1687,13 +1708,26 @@ public class jfsOtterly extends JPanel {
 		}
 		
 		public void debug(){
-			Enumeration en = v.elements();
+			Enumeration en = ((Vector<String>) v).elements();
 			int i = 0;
 			while (en.hasMoreElements()) {
 				i++;
 				Buff bb = (Buff) en.nextElement();
 				log.debug("no "+i+" bei 100 "+bb.b[100]+" at "+bb.t);
 			}
+		}
+		
+		public void sort(){
+			ms.v.sort(new Comparator<Buff>() {
+
+				
+				@Override
+				public int compare(Buff arg0, Buff arg1) {
+					// TODO Auto-generated method stub
+					return arg0.n - arg1.n;
+				}
+				
+			});
 		}
 	}
 	
