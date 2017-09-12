@@ -245,7 +245,7 @@ public class jfsOtterly extends JPanel {
 	byte[] sendbuffer = new byte[] { (byte)0x45, (byte)0x52, 
 			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0E,
 			(byte)0x00, (byte)0x00, (byte)0xDA, (byte)0xC0,
-			(byte)0x01, (byte)0x00};
+			(byte)0x01, (byte)0x08};
 
 	int sh_period = 14;
 	int icg_period = 14776;
