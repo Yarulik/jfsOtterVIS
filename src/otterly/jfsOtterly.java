@@ -255,7 +255,7 @@ public class jfsOtterly extends JPanel {
 	byte[] sendbuffer = new byte[] { (byte)0x45, (byte)0x52, 
 			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x0E,
 			(byte)0x00, (byte)0x00, (byte)0xDA, (byte)0xC0,
-			(byte)0x01, (byte)0x08};
+			(byte)0x01, (byte)0x01};
 
 	int sh_period = 14;
 	int icg_period = 14776;
@@ -306,12 +306,15 @@ public class jfsOtterly extends JPanel {
 	static double erw = 0;
 	// Filefilter wegen linux
 	private String filterstring = "";
+	private JTextField intgts;
+	private int int_to_avg = 1;
 	/*
 	 * Sending data to the nucleo
 	 */
 	private void update_send_buffer(){		
 		sh_period = Integer.parseInt(shts.getText());
-		icg_period = Integer.parseInt(icgts.getText());		
+		icg_period = Integer.parseInt(icgts.getText());
+		int_to_avg = Integer.parseInt(intgts.getText());
         byte[] bytes = ByteBuffer.allocate(4).putInt(sh_period).array();
         for (int i = 0; i < bytes.length; i++) {
         	 sendbuffer[i+2]=bytes[i];
@@ -320,7 +323,9 @@ public class jfsOtterly extends JPanel {
         for (int i = 0; i < bytes.length; i++) {
         	 sendbuffer[i+6]=bytes[i];
 		}   
-       
+        bytes = ByteBuffer.allocate(4).putInt(int_to_avg).array();
+        sendbuffer[11]=bytes[3];
+       // log.debug(SubsDiv.bytesToHex(sendbuffer));
 	}
 	/*
 	 * Panel for open and close of the RS 232 port
@@ -444,6 +449,36 @@ public class jfsOtterly extends JPanel {
 		            //icg_period = Integer.parseInt(icgts.getText());
 		            update_send_buffer();
 		        }						
+			}
+		});
+	    pfs.add(new JLabel("Int2AVG"));
+	    intgts = new JTextField(Integer.toString(int_to_avg),2);
+	    pfs.add(intgts,"wrap");
+	    intgts.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+				if (arg0.getKeyCode()==KeyEvent.VK_ENTER){
+		            int_to_avg = Integer.parseInt(intgts.getText());
+		            if ((int_to_avg <1) || (int_to_avg >15)){
+		            	int_to_avg = 1;
+		            	JOptionPane.showMessageDialog(null, "Integrations to average are between 1 und 15");
+		            	intgts.setText(Integer.toString(int_to_avg));
+		            }
+		        }		
+				
 			}
 		});
 	    pfs.add(new JLabel("High level"));
@@ -987,6 +1022,7 @@ public class jfsOtterly extends JPanel {
 								Buff bb = (Buff) en.nextElement();
 								String cc ="";
 								// what to save
+								daten = bb.b.clone();
 								switch (out){
 								case CALCULATE:
 									calc_data();
@@ -1010,9 +1046,11 @@ public class jfsOtterly extends JPanel {
 									outfile = new FileWriter(sf);
 									for (int i = 0; i < daten.length; i++) {
 									 if (usenmscale==true){ //nm scale output
-										 outfile.append(Float.toString(display.nm[i])+" , "+Float.toString(bb.b[i])+"\n");
+										 //outfile.append(Float.toString(display.nm[i])+" , "+Float.toString(bb.b[i])+"\n");
+										 outfile.append(Float.toString(display.nm[i])+" , "+Float.toString(display.y[i])+"\n");
 									 } else { //raw output
-										 outfile.append(Float.toString(display.x[i])+" , "+Float.toString(bb.b[i])+"\n");	
+										 //outfile.append(Float.toString(display.x[i])+" , "+Float.toString(bb.b[i])+"\n");
+										 outfile.append(Float.toString(display.x[i])+" , "+Float.toString(display.y[i])+"\n");
 									 }
 								}
 								outfile.close();									
@@ -1139,8 +1177,31 @@ public class jfsOtterly extends JPanel {
 					Enumeration en = ((Vector<String>) ms.v).elements();
 					while (en.hasMoreElements()) {
 						Buff bb = (Buff) en.nextElement();
-						for (int i1 = 0; i1 < daten.length; i1++) {
-							flu[i1] = bb.b[i1];
+						daten = bb.b.clone();
+						log.debug(" out "+out+" old "+bb.old);
+						if (bb.old == false){
+							switch (out){
+							case CALCULATE:
+								calc_data();							
+								break;
+							case TRANSMISSION:				
+								trans_data();
+								break;
+							case EXTENTION:	
+								extent_data();							
+								break;	
+							default:
+								raw_data();							
+								break;			
+							} }
+							
+						for (int i1 = 0; i1 < daten.length; i1++) {							
+							if (bb.old==true) {
+								flu[i1] = bb.b[i1];
+							}
+							else {
+								flu[i1] =display.y[i1];
+							}
 						}						
 						count++;
 						for (int i1 = 0; i1 < daten.length; i1++) {
@@ -1194,8 +1255,8 @@ public class jfsOtterly extends JPanel {
 	
 
 	public void showit(){
-		float y = 0;
-		float y1=0;
+		//float y = 0;
+		//float y1=0;
 		plot.clear(false);
 			switch (out){
 			case CALCULATE:
@@ -1218,6 +1279,28 @@ public class jfsOtterly extends JPanel {
 		
 	}
 	
+	public void showold(){
+		plot.clear(false);
+		raw_data();
+		switch (out){
+		case CALCULATE:
+			//calc_data();
+			display.show_calculate();
+		break;
+		case TRANSMISSION:				
+			//trans_data();
+			display.show_transmission();
+		break;
+		case EXTENTION:	
+			//extent_data();	
+			display.show_absorbance();
+		break;	
+		default:
+			//raw_data();	
+			display.show_raw();
+			break;			
+	}  		
+	}
 	private void set_out(int i){
 		out = i;
 		switch(i){
@@ -1617,8 +1700,9 @@ public class jfsOtterly extends JPanel {
 	 * multiple spectra
 	 */
 	public class Buff {
-		long t = 0;
-		int n = 0;
+		long t = 0;				// time
+		int n = 0;				// nr
+		boolean old = false;	// old data from file		
 		float[] b =  new  float[max_buffer/2]; ;		
 	}
 	
@@ -1638,6 +1722,7 @@ public class jfsOtterly extends JPanel {
 			buf.n = nr2;
 			buf.t = tt;
 			buf.b = daten.clone();
+			buf.old = true;
 			v.add(buf);
 			countfs.setText(akt+"/"+v.size());		
 		}
@@ -1673,7 +1758,11 @@ public class jfsOtterly extends JPanel {
 				daten = b.b.clone();
 				countfs.setText(akt+"/"+v.size());
 				infofs.setText(""+b.t);
-				showit();
+				if (b.old){
+					log.debug("old "+b.old);
+					showold();
+				}
+				else showit();
 			}
 		}
 
@@ -1688,7 +1777,7 @@ public class jfsOtterly extends JPanel {
 				daten = b.b.clone();
 				countfs.setText(akt+"/"+v.size());
 				infofs.setText(""+b.t);
-				showit();
+				if (b.old) showold(); else showit();
 			}
 		}
 		public void plus(){
@@ -1905,6 +1994,7 @@ public class jfsOtterly extends JPanel {
 	
 		public void showdark(){
 			//init_plot();
+			jbclear.doClick();
 			plot.setXRange(0, 3700);
 		    plot.setYRange(1000, 4000);	 			
 			for (int i = 0; i < dark.length; i++) {
@@ -1914,6 +2004,7 @@ public class jfsOtterly extends JPanel {
 		}
 		public void showbase(){
 		    //init_plot();
+			jbclear.doClick();
 		    plot.setXRange(0, 3700);
 		    plot.setYRange(1000, 4000);
 			for (int i = 0; i < dark.length; i++) {
